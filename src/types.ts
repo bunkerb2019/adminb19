@@ -8,3 +8,5 @@ export type Order = {
     type?: "food" | "bar"; // ⬅️ Тип строго ограничен
     image?: string;
   };
+
+  

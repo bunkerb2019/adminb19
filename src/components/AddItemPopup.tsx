@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { Order } from "../types";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
+import useCategories from "../modules/categories/useCategories";
 
 interface AddItemPopupProps {
   open: boolean;
   onClose: () => void;
   onAdd: (newItem: Order) => void;
 }
-
-const categories = ["salad", "soup", "cocktail", "hot drink"];
 
 const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => {
   const [name, setName] = useState("");
@@ -41,6 +40,8 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
     saveItem(newItem, image)
   };
 
+  const {data} = useCategories()
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>Добавить товар</DialogTitle>
@@ -53,9 +54,9 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
         <FormControl fullWidth>
           <InputLabel>Категория</InputLabel>
           <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-            {categories.map((cat) => (
-              <MenuItem key={cat} value={cat}>
-                {cat}
+            {data?.map((cat) => (
+              <MenuItem key={cat.id} value={cat.ru}>
+                {cat.ru}
               </MenuItem>
             ))}
           </Select>

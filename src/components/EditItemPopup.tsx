@@ -12,8 +12,9 @@ import {
 } from "@mui/material";
 import { Order } from "../types";
 import { collection, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig"; // Импортируйте storage из firebaseConfig
+import { db, storage } from "../firebase/firebaseConfig";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
+import { getDownloadURL, ref } from 'firebase/storage';
 
 interface EditItemPopupProps {
   open: boolean;
@@ -31,9 +32,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | undefined>();
-  const [imagePreview, setImagePreview] = useState<string | undefined>(item?.image);
-
-
+  const [imagePreview, setImagePreview] = useState<string | undefined>();
 
   useEffect(() => {
     if (item) {
@@ -42,7 +41,21 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
       setWeight(item.weight || "");
       setPrice(item.price || "");
       setCategory(item.category ?? '');
-      setImagePreview(item.image);
+
+      // Получаем URL изображения из Firebase Storage, если item.image - это путь
+      if (item.image) {
+        const storageRef = ref(storage, item.image);
+        getDownloadURL(storageRef)
+          .then((url) => {
+            setImagePreview(url);
+          })
+          .catch((error) => {
+            console.error("Error getting download URL:", error);
+            setImagePreview(undefined); // Обработка ошибки
+          });
+      } else {
+        setImagePreview(undefined); // Если item.image отсутствует
+      }
     }
   }, [item]);
 
@@ -65,8 +78,6 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
       category,
     }, image)
   }
-
-  
 
   const handleDelete = async () => {
     if (!item) return;

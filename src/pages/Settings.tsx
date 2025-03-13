@@ -100,14 +100,19 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
 
 // Интерфейс для структуры настроек
 interface SettingsData {
+  // Шаг 1: Настройки приветствия
   welcomeText: string;
   welcomeBackground: string;
   companyLogo: string | null;
   welcomeImage: string | null;
+  
+  // Шаг 2: Настройки UI
   backgroundColor: string;
   textColor: string;
   navbarColor: string;
   backgroundImage: string | null;
+  
+  // Шаг 3: Настройки карточки товара
   cardTextColor: string;
   cardBorderColor: string;
   cardBackgroundColor: string;
@@ -158,34 +163,41 @@ const Settings = () => {
     cardBlur: 0,
     placeholderImage: null
   });
+  
   const [settingsChanged, setSettingsChanged] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
         const docRef = doc(db, "settings", "default");
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Настройки приветствия
+          
+          // Шаг 1: Настройки приветствия
           setWelcomeText(data.welcomeText || "");
           setWelcomeBackground(data.welcomeBackground || "#f0f0f0");
           setCompanyLogo(data.companyLogo || null);
           setWelcomeImage(data.welcomeImage || null);
 
-          // Настройки UI
+          // Шаг 2: Настройки UI
           setBackgroundColor(data.backgroundColor || "#ffffff");
           setTextColor(data.textColor || "#000000");
           setNavbarColor(data.navbarColor || "#333333");
           setBackgroundImage(data.backgroundImage || null);
 
-          // Настройки карточки товара
+          // Шаг 3: Настройки карточки товара
           setCardTextColor(data.cardTextColor || "#000000");
           setCardBorderColor(data.cardBorderColor || "#cccccc");
           setCardBackgroundColor(data.cardBackgroundColor || "#ffffff");
-          setCardBackgroundOpacity(data.cardBackgroundOpacity || 1);
-          setCardBlur(data.cardBlur || 0);
+          setCardBackgroundOpacity(data.cardBackgroundOpacity !== undefined ? data.cardBackgroundOpacity : 1);
+          setCardBlur(data.cardBlur !== undefined ? data.cardBlur : 0);
           setPlaceholderImage(data.placeholderImage || null);
           
           // Сохраняем изначальное состояние
@@ -201,13 +213,19 @@ const Settings = () => {
             cardTextColor: data.cardTextColor || "#000000",
             cardBorderColor: data.cardBorderColor || "#cccccc",
             cardBackgroundColor: data.cardBackgroundColor || "#ffffff",
-            cardBackgroundOpacity: data.cardBackgroundOpacity || 1,
-            cardBlur: data.cardBlur || 0,
+            cardBackgroundOpacity: data.cardBackgroundOpacity !== undefined ? data.cardBackgroundOpacity : 1,
+            cardBlur: data.cardBlur !== undefined ? data.cardBlur : 0,
             placeholderImage: data.placeholderImage || null
           });
+        } else {
+          // Если документа нет, создаем его с дефолтными значениями
+          await updateDoc(docRef, initialSettings);
         }
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
+        setError("Ошибка при загрузке данных");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -252,8 +270,10 @@ const Settings = () => {
 
   const updateSettings = async () => {
     try {
+      setLoading(true);
       const docRef = doc(db, "settings", "default");
 
+      // Обработка загрузки файлов
       let newBackgroundImage = backgroundImage;
       if (backgroundFile) {
         const storageRef = ref(storage, `settings/backgroundImage`);
@@ -282,21 +302,21 @@ const Settings = () => {
         newPlaceholderImage = await getDownloadURL(storageRef);
       }
 
-      // Используем тип Record<string, any> для Firebase
+      // Подготовка данных для обновления в Firestore
       const updatedSettings: Record<string, any> = {
-        // Настройки приветствия
+        // Шаг 1: Настройки приветствия
         welcomeText,
         welcomeBackground,
         companyLogo: newCompanyLogo,
         welcomeImage: newWelcomeImage,
 
-        // Настройки UI
+        // Шаг 2: Настройки UI
         backgroundColor,
         textColor,
         navbarColor,
         backgroundImage: newBackgroundImage,
 
-        // Настройки карточки товара
+        // Шаг 3: Настройки карточки товара
         cardTextColor,
         cardBorderColor,
         cardBackgroundColor,
@@ -305,9 +325,10 @@ const Settings = () => {
         placeholderImage: newPlaceholderImage,
       };
 
+      // Обновляем документ в Firestore
       await updateDoc(docRef, updatedSettings);
 
-      // Обновляем стейт
+      // Обновляем локальный стейт
       setBackgroundImage(newBackgroundImage);
       setWelcomeImage(newWelcomeImage);
       setCompanyLogo(newCompanyLogo);
@@ -330,9 +351,9 @@ const Settings = () => {
         cardBlur,
         placeholderImage: newPlaceholderImage
       });
-      setSettingsChanged(false);
       
-      // Сбрасываем файлы после загрузки
+      // Сбрасываем флаг изменений и файлы
+      setSettingsChanged(false);
       setBackgroundFile(null);
       setWelcomeFile(null);
       setCompanyLogoFile(null);
@@ -341,59 +362,86 @@ const Settings = () => {
       alert("Настройки успешно сохранены");
     } catch (error) {
       console.error("Ошибка при обновлении настроек:", error);
+      setError("Ошибка при сохранении настроек");
       alert("Ошибка при сохранении настроек");
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteImage = async (type: string) => {
     let storagePath = "";
+    let fieldName = "";
+    
     switch (type) {
       case "background":
         storagePath = "settings/backgroundImage";
+        fieldName = "backgroundImage";
         break;
       case "welcome":
         storagePath = "settings/welcomeImage";
+        fieldName = "welcomeImage";
         break;
       case "logo":
         storagePath = "settings/companyLogo";
+        fieldName = "companyLogo";
         break;
       case "placeholder":
         storagePath = "settings/placeholderImage";
+        fieldName = "placeholderImage";
         break;
       default:
         console.error("Неизвестный тип изображения для удаления:", type);
         return;
     }
 
-    const storageRef = ref(storage, storagePath);
     try {
-      await deleteObject(storageRef);
-
-      // Обновляем стейт и Firestore
-      const updateData: Record<string, any> = {};
+      setLoading(true);
       
+      // Удаление из Storage
+      const storageRef = ref(storage, storagePath);
+      try {
+        await deleteObject(storageRef);
+      } catch (storageError) {
+        console.warn("Файл в хранилище не найден или уже был удален:", storageError);
+        // Продолжаем, даже если файл не найден в хранилище
+      }
+
+      // Обновляем стейт
       switch (type) {
         case "background":
           setBackgroundImage(null);
-          updateData.backgroundImage = null;
           break;
         case "welcome":
           setWelcomeImage(null);
-          updateData.welcomeImage = null;
           break;
         case "logo":
           setCompanyLogo(null);
-          updateData.companyLogo = null;
           break;
         case "placeholder":
           setPlaceholderImage(null);
-          updateData.placeholderImage = null;
           break;
       }
       
+      // Обновляем Firestore
+      const updateData: Record<string, any> = {};
+      updateData[fieldName] = null;
+      
       await updateDoc(doc(db, "settings", "default"), updateData);
+      
+      // Обновляем initialSettings, чтобы отразить изменения
+      setInitialSettings(prev => ({
+        ...prev,
+        [fieldName]: null
+      }));
+      
+      alert(`Изображение успешно удалено`);
     } catch (error) {
       console.error("Ошибка при удалении изображения:", error);
+      setError("Ошибка при удалении изображения");
+      alert("Ошибка при удалении изображения");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -411,13 +459,27 @@ const Settings = () => {
         Настройки
       </Typography>
       
+      {/* Индикатор загрузки */}
+      {loading && (
+        <Typography variant="body1" align="center" sx={{ my: 2 }}>
+          Загрузка...
+        </Typography>
+      )}
+      
+      {/* Сообщение об ошибке */}
+      {error && (
+        <Typography variant="body1" color="error" align="center" sx={{ my: 2 }}>
+          {error}
+        </Typography>
+      )}
+      
       {/* Кнопка сохранения (фиксированная) */}
       <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
         <Button 
           variant="contained" 
           color="primary" 
           onClick={updateSettings}
-          disabled={!settingsChanged}
+          disabled={!settingsChanged || loading}
           startIcon={<SaveIcon />}
           size="large"
         >
@@ -443,6 +505,7 @@ const Settings = () => {
                 margin="normal"
                 multiline
                 rows={2}
+                disabled={loading}
               />
               
               <ColorPicker 
@@ -565,6 +628,7 @@ const Settings = () => {
                   max={1}
                   valueLabelDisplay="auto"
                   valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+                  disabled={loading}
                 />
               </Box>
               
@@ -577,6 +641,7 @@ const Settings = () => {
                   min={0}
                   max={20}
                   valueLabelDisplay="auto"
+                  disabled={loading}
                 />
               </Box>
               

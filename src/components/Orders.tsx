@@ -6,7 +6,9 @@ import useOrders from "../components/useOrders";
 import AddItemPopup from "../components/AddItemPopup";
 import EditItemPopup from "../components/EditItemPopup";
 import { Order } from "../types";
-import OrderList from "./OrderList"; // Import the new component
+import OrderList from "./OrderList"; 
+import useCategories from "../modules/categories/useCategories";
+ 
 
 const Orders = () => {
     const { filteredOrders, typeFilter, setTypeFilter, categoryFilter, setCategoryFilter } = useOrders();
@@ -22,7 +24,15 @@ const Orders = () => {
     const handleAdd = () => {
         setAddPopupOpen(false);
     };
+// suda ///////////////////////
+      const {data} = useCategories()
 
+    const dinamicCategory = () => {
+        return data?.map(category => category.ru).map(element => 
+            <MenuItem key={element} value="">{element}</MenuItem>
+        )    
+    };
+// suda ///////////////////////
     return (
         <Paper sx={{ mt: 4, p: 3 }}>
             <Typography variant="h6" component="h2" gutterBottom>
@@ -46,9 +56,8 @@ const Orders = () => {
                     <FormControl fullWidth>
                         <InputLabel>Категория</InputLabel>
                         <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                            <MenuItem value="">Все</MenuItem>
-                            <MenuItem value="cocktail">Коктейли</MenuItem>
-                            <MenuItem value="hot drink">Горячие напитки</MenuItem>
+                            {dinamicCategory()}
+                            
                         </Select>
                     </FormControl>
                 </Grid>

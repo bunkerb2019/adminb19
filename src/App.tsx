@@ -6,7 +6,10 @@ import Settings from "./pages/Settings";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
+export const queryClient = new QueryClient()
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -18,6 +21,8 @@ const App = () => {
   });
 
   return (
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
     <ThemeProvider theme={theme} defaultMode="dark">
       <CssBaseline />
       <Router>
@@ -36,6 +41,7 @@ const App = () => {
         </div>
       </Router>
     </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

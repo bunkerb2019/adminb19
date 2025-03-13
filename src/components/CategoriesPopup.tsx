@@ -1,15 +1,38 @@
 import { useState, useEffect } from "react";
-import { Modal, Box, Typography, TextField, Button, IconButton } from "@mui/material";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  IconButton,
+} from "@mui/material";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { db } from "../firebase/firebaseConfig";
-import { doc, getDoc, updateDoc, setDoc, deleteDoc, collection } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+} from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
+import useCategories from "../modules/categories/useCategories";
+import { queryClient } from "../App";
+import queryKeys from "../utils/queryKeys";
 
 const storage = getStorage();
 
-interface Category {
+export interface Category {
   id: string;
   parentId: string;
   ru: string;
@@ -24,26 +47,21 @@ interface CategoryPopupProps {
 }
 
 const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>({});
+  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>(
+    {}
+  );
   const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
-  const [validationErrors, setValidationErrors] = useState<{ [key: string]: { [field: string]: string } }>({});
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: { [field: string]: string };
+  }>({});
 
+  const { data: serverCategories } = useCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const docRef = doc(db, "settings", "categories");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setCategories(docSnap.data().list || []);
-        }
-      } catch (error) {
-        console.error("Ошибка загрузки категорий:", error);
-      }
-    };
-
-    if (open) fetchCategories();
-  }, [open]);
+    if (!categories.length && serverCategories?.length) {
+      setCategories(serverCategories);
+    }
+  }, [serverCategories]);
 
   const validateCategory = (category: Category) => {
     const errors: { [field: string]: string } = {};
@@ -59,14 +77,22 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     return errors;
   };
 
-  const handleInputChange = (id: string, field: keyof Omit<Category, "id" | "parentId" | "icon">, value: string) => {
-    const updatedCategories = categories.map((item) => (item.id === id ? { ...item, [field]: value } : item));
+  const handleInputChange = (
+    id: string,
+    field: keyof Omit<Category, "id" | "parentId" | "icon">,
+    value: string
+  ) => {
+    const updatedCategories = categories.map((item) =>
+      item.id === id ? { ...item, [field]: value } : item
+    );
     setCategories(updatedCategories);
 
     // Update validation errors immediately
     setValidationErrors((prev) => ({
       ...prev,
-      [id]: validateCategory(updatedCategories.find((cat) => cat.id === id) as Category),
+      [id]: validateCategory(
+        updatedCategories.find((cat) => cat.id === id) as Category
+      ),
     }));
   };
 
@@ -76,7 +102,12 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
 
   const handleEditMode = (id: string) => {
     setEditMode((prev) => ({ ...prev, [id]: !prev[id] }));
-    setValidationErrors((prev) => ({ ...prev, [id]: validateCategory(categories.find((cat) => cat.id === id) as Category) }));
+    setValidationErrors((prev) => ({
+      ...prev,
+      [id]: validateCategory(
+        categories.find((cat) => cat.id === id) as Category
+      ),
+    }));
   };
 
   const handleSaveCategory = async (category: Category) => {
@@ -99,18 +130,25 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
       const updatedCategory = { ...category, icon: updatedIcon };
 
       // Optimistic update of local state
-      setCategories((prev) => prev.map((item) => (item.id === category.id ? updatedCategory : item)));
+      setCategories((prev) =>
+        prev.map((item) => (item.id === category.id ? updatedCategory : item))
+      );
       setEditMode((prev) => ({ ...prev, [category.id]: false }));
 
       const docRef = doc(db, "settings", "categories");
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const updatedCategories = docSnap.data().list.map((item: Category) =>
-          item.id === category.id ? updatedCategory : item
-        );
+        const updatedCategories = docSnap
+          .data()
+          .list.map((item: Category) =>
+            item.id === category.id ? updatedCategory : item
+          );
         await updateDoc(docRef, { list: updatedCategories });
+        queryClient.invalidateQueries({queryKey: queryKeys.categories()})
+        setCategories([])
       }
 
+    
     } catch (error) {
       console.error("Ошибка сохранения категории:", error);
     }
@@ -122,13 +160,16 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const updatedCategories = docSnap.data().list.filter((item: Category) => item.id !== id);
+        const updatedCategories = docSnap
+          .data()
+          .list.filter((item: Category) => item.id !== id);
         await updateDoc(docRef, { list: updatedCategories });
       }
 
       await deleteDoc(doc(collection(db, "categories"), id));
 
-      setCategories((prev) => prev.filter((item) => item.id !== id));
+      queryClient.invalidateQueries({queryKey: queryKeys.categories()})
+      setCategories([])
     } catch (error) {
       console.error("Ошибка удаления категории:", error);
     }
@@ -138,7 +179,9 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     try {
       const storageRef = ref(storage, `categories/${id}`);
       await deleteObject(storageRef);
-      setCategories((prev) => prev.map((item) => (item.id === id ? { ...item, icon: "" } : item)));
+      setCategories((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, icon: "" } : item))
+      );
     } catch (error) {
       console.error("Ошибка удаления иконки:", error);
     }
@@ -158,7 +201,10 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     setCategories((prev) => [...prev, newCategory]);
 
     // Initialize validation errors for the new category
-    setValidationErrors((prev) => ({ ...prev, [newCategory.id]: validateCategory(newCategory) }));
+    setValidationErrors((prev) => ({
+      ...prev,
+      [newCategory.id]: validateCategory(newCategory),
+    }));
     setEditMode((prev) => ({ ...prev, [newCategory.id]: true }));
 
     const docRef = doc(db, "settings", "categories");
@@ -188,7 +234,14 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           overflowY: "auto",
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Typography variant="h6">Редактирование категорий</Typography>
           <IconButton onClick={onClose}>
             <CloseIcon />
@@ -196,25 +249,62 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
         </Box>
 
         {["1", "2"].map((parentId) => (
-          <Box key={parentId} sx={{ mb: 3, p: 2, border: "1px solid #ddd", borderRadius: 2 }}>
-            <Typography variant="h6">Навигация {parentId === "1" ? "1st" : "2nd"}</Typography>
+          <Box
+            key={parentId}
+            sx={{ mb: 3, p: 2, border: "1px solid #ddd", borderRadius: 2 }}
+          >
+            <Typography variant="h6">
+              Навигация {parentId === "1" ? "1st" : "2nd"}
+            </Typography>
 
             {categories
               .filter((cat) => cat.parentId === parentId)
               .map((item) => (
-                <Box key={item.id} sx={{ mb: 2, p: 2, border: "1px solid #ddd", borderRadius: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
+                <Box
+                  key={item.id}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: "1px solid #ddd",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 1,
+                    }}
+                  >
                     <Typography variant="body1">Категория</Typography>
 
-                    <Button variant="contained" component="label" startIcon={<CloudUploadIcon />}>
+                    <Button
+                      variant="contained"
+                      component="label"
+                      startIcon={<CloudUploadIcon />}
+                    >
                       {item.icon ? "Заменить" : "Добавить иконку"}
-                      <input type="file" hidden onChange={(e) => handleIconUpload(item.id, e.target.files?.[0] || null)} />
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(e) =>
+                          handleIconUpload(item.id, e.target.files?.[0] || null)
+                        }
+                      />
                     </Button>
 
                     {item.icon && (
                       <>
-                        <img src={item.icon} alt="icon" style={{ width: 40, height: 40, borderRadius: 4 }} />
-                        <IconButton color="error" onClick={() => handleDeleteIcon(item.id)}>
+                        <img
+                          src={item.icon}
+                          alt="icon"
+                          style={{ width: 40, height: 40, borderRadius: 4 }}
+                        />
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteIcon(item.id)}
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </>
@@ -227,7 +317,13 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                         key={lang}
                         label={lang.toUpperCase()}
                         value={item[lang as keyof Category]}
-                        onChange={(e) => handleInputChange(item.id, lang as "ru" | "ro" | "en", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.id,
+                            lang as "ru" | "ro" | "en",
+                            e.target.value
+                          )
+                        }
                         sx={{ flex: 1 }}
                         disabled={!editMode[item.id]}
                         error={!!validationErrors[item.id]?.[lang]}
@@ -242,23 +338,37 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                         variant="contained"
                         color="success"
                         onClick={() => handleSaveCategory(item)}
-                        disabled={Object.keys(validationErrors[item.id] || {}).length > 0}
+                        disabled={
+                          Object.keys(validationErrors[item.id] || {}).length >
+                          0
+                        }
                       >
                         Сохранить
                       </Button>
                     ) : (
-                      <Button variant="contained" onClick={() => handleEditMode(item.id)}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleEditMode(item.id)}
+                      >
                         Редактировать
                       </Button>
                     )}
-                    <Button variant="outlined" color="error" onClick={() => handleDeleteCategory(item.id)}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDeleteCategory(item.id)}
+                    >
                       Удалить категорию
                     </Button>
                   </Box>
                 </Box>
               ))}
 
-            <Button variant="contained" onClick={() => handleAddCategory(parentId)} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => handleAddCategory(parentId)}
+              sx={{ mt: 2 }}
+            >
               Добавить категорию
             </Button>
           </Box>

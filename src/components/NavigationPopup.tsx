@@ -1,3 +1,4 @@
+// NavigationPopup.tsx
 import { useState, useEffect } from "react";
 import { Modal, Box, Typography, TextField, Button, IconButton } from "@mui/material";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";

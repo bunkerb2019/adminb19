@@ -14,7 +14,9 @@ interface OrderListProps {
 const OrderList: React.FC<OrderListProps> = ({ orders, onEdit }) => {
     return (
         <>
-            {orders.map((order) => <OrderListItem onEdit={onEdit} key={order.id} order={order}/>)}
+           {orders.map((order) => (
+    <OrderListItem key={order.id} order={order} onEdit={onEdit} />
+))}
         </>
     );
 };

@@ -22,7 +22,7 @@ const OrderListItem = ({order, onEdit}: Props) => {
 
     return (
     <Grid item xs={12} sm={6} md={3} key={order.id}>
-        <Card sx={{ height: 220, cursor: "pointer", display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} onClick={() => onEdit(order)}>
+        <Card sx={{ height: 220, cursor: "pointer", display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid #6b6969'}} onClick={() => onEdit(order)}>
             <CardContent>
                 <Typography variant="body1">{order.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
