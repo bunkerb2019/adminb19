@@ -16,7 +16,6 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
   const [weight, setWeight] = useState<number | "">("");
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
-  const [type, setType] = useState<"food" | "bar">("food");
   const [image, setImage] = useState<File>();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +34,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
       weight: Number(weight),
       price: Number(price),
       category,
-      type,
+      
     };
     saveItem(newItem, image)
   };
@@ -59,14 +58,6 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
                 {cat.ru}
               </MenuItem>
             ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel>Тип</InputLabel>
-          <Select value={type} onChange={(e) => setType(e.target.value as "food" | "bar")}>
-            <MenuItem value="food">Еда</MenuItem>
-            <MenuItem value="bar">Бар</MenuItem>
           </Select>
         </FormControl>
 

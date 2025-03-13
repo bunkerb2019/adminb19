@@ -7,8 +7,9 @@ import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient()
 
 const App = () => {
@@ -22,7 +23,8 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* настройка и просмотр query если требуется  */}
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */} 
     <ThemeProvider theme={theme} defaultMode="dark">
       <CssBaseline />
       <Router>

@@ -20,8 +20,6 @@ import {
   getDoc,
   updateDoc,
   setDoc,
-  deleteDoc,
-  collection,
 } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -29,6 +27,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import useCategories from "../modules/categories/useCategories";
 import { queryClient } from "../App";
 import queryKeys from "../utils/queryKeys";
+import { getCategoriesDoc } from "../utils/firebaseDoc";
 
 const storage = getStorage();
 
@@ -55,13 +54,18 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     [key: string]: { [field: string]: string };
   }>({});
 
-  const { data: serverCategories } = useCategories();
+  const { data: serverCategories, isLoading, isRefetching } = useCategories();
+
   const [categories, setCategories] = useState<Category[]>([]);
+
   useEffect(() => {
+    console.log({serverCategories, categories, isLoading, isRefetching})
+
+    if (isLoading || isRefetching) return
     if (!categories.length && serverCategories?.length) {
       setCategories(serverCategories);
     }
-  }, [serverCategories]);
+  }, [categories.length, serverCategories, isRefetching, isLoading, categories]);
 
   const validateCategory = (category: Category) => {
     const errors: { [field: string]: string } = {};
@@ -144,7 +148,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
             item.id === category.id ? updatedCategory : item
           );
         await updateDoc(docRef, { list: updatedCategories });
-        queryClient.invalidateQueries({queryKey: queryKeys.categories()})
+        await queryClient.invalidateQueries({queryKey: queryKeys.categories()})
         setCategories([])
       }
 
@@ -156,20 +160,13 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      const docRef = doc(db, "settings", "categories");
-      const docSnap = await getDoc(docRef);
+      
+      const docRef = getCategoriesDoc()
+      const newCategories = categories.filter(category => category.id !== id)
+      await updateDoc(docRef, { list: newCategories });
 
-      if (docSnap.exists()) {
-        const updatedCategories = docSnap
-          .data()
-          .list.filter((item: Category) => item.id !== id);
-        await updateDoc(docRef, { list: updatedCategories });
-      }
-
-      await deleteDoc(doc(collection(db, "categories"), id));
-
-      queryClient.invalidateQueries({queryKey: queryKeys.categories()})
       setCategories([])
+      queryClient.invalidateQueries({queryKey: queryKeys.categories()})
     } catch (error) {
       console.error("Ошибка удаления категории:", error);
     }

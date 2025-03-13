@@ -21,11 +21,14 @@ interface EditItemPopupProps {
   onClose: () => void;
   item?: Order;
   onSave: (updatedItem: Order) => void;
+  categories: string[]; // Добавляем новый пропс
 }
 
-const categories = ["salad", "soup", "cocktail", "hot drink"];
 
-const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSave }) => {
+
+
+
+const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSave, categories }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState<string>("");
   const [weight, setWeight] = useState<number | "">("");

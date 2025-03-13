@@ -7,7 +7,6 @@ import { Order } from "../types"; // ✅ Убеждаемся, что испол
 const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-    const [typeFilter, setTypeFilter] = useState<"food" | "bar" | "">("");
     const [categoryFilter, setCategoryFilter] = useState<string>("");
 
     useEffect(() => {
@@ -29,13 +28,13 @@ const useOrders = () => {
 
     useEffect(() => {
         let filtered = orders;
-        if (typeFilter) filtered = filtered.filter((order) => order.type === typeFilter);
+
         if (categoryFilter) filtered = filtered.filter((order) => order.category === categoryFilter);
 
         setFilteredOrders(filtered);
-    }, [typeFilter, categoryFilter, orders]);
+    }, [ categoryFilter, orders]);
 
-    return { filteredOrders, typeFilter, setTypeFilter, categoryFilter, setCategoryFilter };
+    return { filteredOrders, categoryFilter, setCategoryFilter };
 };
 
 export default useOrders;

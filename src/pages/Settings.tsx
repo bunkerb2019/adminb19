@@ -100,6 +100,7 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
 
 // Интерфейс для структуры настроек
 interface SettingsData {
+  [key: string]: any;
   // Шаг 1: Настройки приветствия
   welcomeText: string;
   welcomeBackground: string;
@@ -220,6 +221,7 @@ const Settings = () => {
         } else {
           // Если документа нет, создаем его с дефолтными значениями
           await updateDoc(docRef, initialSettings);
+
         }
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
@@ -542,7 +544,7 @@ const Settings = () => {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Шаг 2: Настройки UI
+                Шаг 2: Настройки внешний Вид
               </Typography>
               <Divider sx={{ mb: 2 }} />
               

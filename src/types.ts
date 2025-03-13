@@ -5,8 +5,8 @@ export type Order = {
     weight?: number;
     price?: number;
     category?: string;
-    type?: "food" | "bar"; // ⬅️ Тип строго ограничен
     image?: string;
+    
   };
 
   

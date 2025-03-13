@@ -11,7 +11,7 @@ import { db } from "../firebase/firebaseConfig";
 
 const storage = getStorage();
 
-interface NavigationItem {
+export interface NavigationItem {
   id: string;
   ru: string;
   ro: string;
@@ -103,7 +103,7 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
     try {
       const updatedNavigation = [...navigation];
 
-      for (let item of updatedNavigation) {
+      for (const item of updatedNavigation) {
         if (iconFiles[item.id]) {
           const storageRef = ref(storage, `navigation/${item.id}`);
           await uploadBytes(storageRef, iconFiles[item.id] as Blob);

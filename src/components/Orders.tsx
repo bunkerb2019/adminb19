@@ -11,7 +11,7 @@ import useCategories from "../modules/categories/useCategories";
  
 
 const Orders = () => {
-    const { filteredOrders, typeFilter, setTypeFilter, categoryFilter, setCategoryFilter } = useOrders();
+    const { filteredOrders, categoryFilter, setCategoryFilter } = useOrders();
     const [addPopupOpen, setAddPopupOpen] = useState(false);
     const [editPopupOpen, setEditPopupOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -25,14 +25,17 @@ const Orders = () => {
         setAddPopupOpen(false);
     };
 // suda ///////////////////////
-      const {data} = useCategories()
+      const {data: categories} = useCategories()
 
     const dinamicCategory = () => {
-        return data?.map(category => category.ru).map(element => 
+        return categories?.map(category => category.ru).map(element => 
             <MenuItem key={element} value="">{element}</MenuItem>
         )    
     };
 // suda ///////////////////////
+
+
+
     return (
         <Paper sx={{ mt: 4, p: 3 }}>
             <Typography variant="h6" component="h2" gutterBottom>
@@ -41,16 +44,6 @@ const Orders = () => {
 
             {/* Фильтры */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={6} md={3}>
-                    <FormControl fullWidth>
-                        <InputLabel>Тип</InputLabel>
-                        <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as "food" | "bar" | "")}>
-                            <MenuItem value="">Все</MenuItem>
-                            <MenuItem value="food">Еда</MenuItem>
-                            <MenuItem value="bar">Бар</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Grid>
 
                 <Grid item xs={6} md={3}>
                     <FormControl fullWidth>
@@ -90,7 +83,13 @@ const Orders = () => {
 
             {/* Попап для редактирования товара */}
             {selectedOrder && (
-                <EditItemPopup open={editPopupOpen} onClose={() => setEditPopupOpen(false)} item={selectedOrder} onSave={() => setEditPopupOpen(false)} />
+                 <EditItemPopup 
+                 open={editPopupOpen} 
+                 onClose={() => setEditPopupOpen(false)} 
+                 item={selectedOrder} 
+                 onSave={() => setEditPopupOpen(false)} 
+                 categories={categories?.map(category => category.ru) || []} // Передача категорий
+             />
             )}
         </Paper>
     );
