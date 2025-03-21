@@ -27,7 +27,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import useCategories from "../modules/categories/useCategories";
 import { queryClient } from "../App";
 import queryKeys from "../utils/queryKeys";
-import { getCategoriesDoc } from "../utils/firebaseDoc";
+import { getCategoriesDoc } from "../utils/firebaseDoc"; 
 
 const storage = getStorage();
 

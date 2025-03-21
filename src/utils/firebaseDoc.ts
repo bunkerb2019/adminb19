@@ -7,4 +7,4 @@ export const getCategoriesDoc = () => {
 
   export const getNavigationDoc = () => {
     return doc(db, "settings", "navigation")
-  };
+  };    

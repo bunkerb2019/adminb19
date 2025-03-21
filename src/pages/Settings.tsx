@@ -526,7 +526,7 @@ const Settings = () => {
                 />
               </Box>
               
-              <Box sx={{ mt: 2 }}>
+              {/* <Box sx={{ mt: 2 }}>
                 <ImageUploader 
                   label="Картинка приветствия" 
                   imageUrl={welcomeImage}
@@ -534,7 +534,7 @@ const Settings = () => {
                   onDelete={deleteImage}
                   imageType="welcome"
                 />
-              </Box>
+              </Box> */}
             </CardContent>
           </Card>
         </Grid>
