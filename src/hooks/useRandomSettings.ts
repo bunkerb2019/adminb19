@@ -4,7 +4,7 @@ import { db } from "../firebase/firebaseConfig";
 import { RandomSettings } from "../types";
 
 // Основное изменение - добавлен правильный экспорт
- const useRandomSettings = () => {
+ export const useRandomSettings = () => {
   return useQuery<RandomSettings>({
     queryKey: ['randomSettings'],
     queryFn: async () => {
@@ -39,5 +39,4 @@ import { RandomSettings } from "../types";
   });
 };
 
-// Убедитесь, что нет дублирующего экспорта default
-export default useRandomSettings;
+

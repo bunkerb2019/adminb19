@@ -24,7 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useQueryClient } from "@tanstack/react-query";
 import { setDoc } from "firebase/firestore";
 import useCategories from "../modules/categories/useCategories";
-import { useRandomSettings } from "../hooks/useRandomSettings";
+import  {useRandomSettings}  from "../hooks/useRandomSettings";
 import queryKeys from "../utils/queryKeys";
 import { getRandomSettingsDoc } from "../utils/firebaseDoc";
 import { Category, RandomSettings, RandomizerConfig } from "../types";

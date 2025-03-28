@@ -12,7 +12,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, value, children })
       <CardContent>
         <Typography variant="h6">{title}</Typography>
         {value && <Typography variant="body1">{value}</Typography>}
-        {children} {/* Теперь можно передавать контент внутрь */}
+        {children} Теперь можно передавать контент внутрь
       </CardContent>
     </Card>
   );
