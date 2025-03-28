@@ -8,3 +8,7 @@ export const getCategoriesDoc = () => {
   export const getNavigationDoc = () => {
     return doc(db, "settings", "navigation")
   };    
+
+  export const getRandomSettingsDoc = () => {
+    return doc(db, "settings", "random");
+  };
