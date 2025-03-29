@@ -14,10 +14,19 @@ interface AddItemPopupProps {
 const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [weight, setWeight] = useState<number | "">("");
-  const [price, setPrice] = useState<number | "">("");
-  const [category, setCategory] = useState("");
+  const [weight, setWeight] = useState<number | string>("");
+  const [price, setPrice] = useState<number | string>("");
+  const [category, setCategory] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
+
+  const resetPopupState = () => {
+    setName("");
+    setDescription("");
+    setWeight("");
+    setPrice("")
+    setCategory("");
+    setImage(null);
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -38,6 +47,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
       
     };
     saveItem(newItem, image ?? null)
+    resetPopupState();
   };
 
   const {data} = useCategories()
