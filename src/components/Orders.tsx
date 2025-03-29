@@ -8,7 +8,6 @@ import EditItemPopup from "../components/EditItemPopup";
 import { Order } from "../types";
 import OrderList from "./OrderList"; 
 import useCategories from "../modules/categories/useCategories";
- 
 
 const Orders = () => {
     const { filteredOrders, categoryFilter, setCategoryFilter } = useOrders();
@@ -24,17 +23,13 @@ const Orders = () => {
     const handleAdd = () => {
         setAddPopupOpen(false);
     };
-// suda ///////////////////////
-      const {data: categories} = useCategories()
+    const {data: categories} = useCategories()
 
     const dinamicCategory = () => {
-        return categories?.map(category => category.ru).map(element => 
-            <MenuItem key={element} value="">{element}</MenuItem>
-        )    
+        return categories?.map(category => category.ru).map(element =>
+            <MenuItem key={element} value={element}>{element}</MenuItem>
+        )
     };
-// suda ///////////////////////
-
-
 
     return (
         <Paper sx={{ mt: 4, p: 3 }}>
@@ -50,7 +45,6 @@ const Orders = () => {
                         <InputLabel>Категория</InputLabel>
                         <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                             {dinamicCategory()}
-                            
                         </Select>
                     </FormControl>
                 </Grid>
