@@ -28,12 +28,6 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
     setImage(null);
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImage(e.target.files[0]);
-    }
-  };
-
   const {saveItem, isLoading} = useCreateMenuItem({onSave: onAdd})
 
   const handleSave = async () => {
@@ -72,7 +66,6 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
           </Select>
         </FormControl>
 
-        {/*<input type="file" accept="image/*" onChange={handleImageChange} />*/}
         <ImageUploadInput setImage={setImage} image={image} />
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
