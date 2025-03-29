@@ -19,7 +19,7 @@ const useCreateMenuItem = ({ item, onSave }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const saveItem = useCallback(
-    async (newItem?: Partial<Order>, image?: File) => {
+    async (newItem?: Partial<Order>, image?: File | null) => {
       setIsLoading(true);
       let menuDoc: DocumentReference<DocumentData, DocumentData> | undefined;
       if (!item) {
