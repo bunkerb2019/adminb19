@@ -3,6 +3,7 @@ import { Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select
 import { Order } from "../types";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
 import useCategories from "../modules/categories/useCategories";
+import {ImageUploadInput} from "./ImageUploadInput.tsx";
 
 interface AddItemPopupProps {
   open: boolean;
@@ -16,7 +17,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
   const [weight, setWeight] = useState<number | "">("");
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
-  const [image, setImage] = useState<File>();
+  const [image, setImage] = useState<File | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -36,7 +37,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
       category,
       
     };
-    saveItem(newItem, image)
+    saveItem(newItem, image ?? null)
   };
 
   const {data} = useCategories()
@@ -61,7 +62,8 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({ open, onClose, onAdd }) => 
           </Select>
         </FormControl>
 
-        <input type="file" accept="image/*" onChange={handleImageChange} />
+        {/*<input type="file" accept="image/*" onChange={handleImageChange} />*/}
+        <ImageUploadInput setImage={setImage} image={image} />
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
           <Button disabled={isLoading} onClick={onClose} color="secondary">
