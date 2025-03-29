@@ -9,25 +9,24 @@ import {
   Select,
   InputLabel,
   FormControl,
+  IconButton,
+  Box,
 } from "@mui/material";
 import { Order } from "../types";
-import { collection, deleteDoc, doc } from "firebase/firestore";
+import { collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db, storage } from "../firebase/firebaseConfig";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
-import { getDownloadURL, ref } from 'firebase/storage';
+import { getDownloadURL, ref, deleteObject } from 'firebase/storage';
 import { ImageUploadInput } from "./ImageUploadInput";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface EditItemPopupProps {
   open: boolean;
   onClose: () => void;
   item?: Order;
   onSave: (updatedItem: Order) => void;
-  categories: string[]; // Добавляем новый пропс
+  categories: string[];
 }
-
-
-
-
 
 const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSave, categories }) => {
   const [name, setName] = useState("");
@@ -37,6 +36,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | undefined>();
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -46,7 +46,6 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
       setPrice(item.price || "");
       setCategory(item.category ?? '');
 
-      // Получаем URL изображения из Firebase Storage, если item.image - это путь
       if (item.image) {
         const storageRef = ref(storage, item.image);
         getDownloadURL(storageRef)
@@ -55,15 +54,15 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
           })
           .catch((error) => {
             console.error("Error getting download URL:", error);
-            setImagePreview(undefined); // Обработка ошибки
+            setImagePreview(undefined);
           });
       } else {
-        setImagePreview(undefined); // Если item.image отсутствует
+        setImagePreview(undefined);
       }
     }
   }, [item]);
 
-  const {saveItem, isLoading} = useCreateMenuItem({item, onSave})
+  const { saveItem, isLoading } = useCreateMenuItem({ item, onSave });
 
   const handleSave = () => {
     saveItem({
@@ -72,14 +71,50 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
       weight: Number(weight),
       price: Number(price),
       category,
-    }, image)
-  }
+    }, image);
+  };
+
+  const handleDeleteImage = async () => {
+    if (!item || !item.image) return;
+
+    setIsDeletingImage(true);
+    try {
+      // Удаляем изображение из Storage
+      const storageRef = ref(storage, item.image);
+      await deleteObject(storageRef);
+
+      // Обновляем документ в Firestore, удаляя ссылку на изображение
+      const menuDoc = doc(collection(db, "menu"), item.id);
+      await updateDoc(menuDoc, {
+        image: null
+      });
+
+      // Обновляем локальное состояние
+      setImagePreview(undefined);
+      setImage(null);
+      onSave({ ...item, image: undefined });
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    } finally {
+      setIsDeletingImage(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!item) return;
 
-    const menuDoc = doc(collection(db, "menu"), item.id);
+    // Если есть изображение, удаляем его из Storage
+    if (item.image) {
+      try {
+        const storageRef = ref(storage, item.image);
+        await deleteObject(storageRef);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
 
+    // Удаляем документ из Firestore
+    const menuDoc = doc(collection(db, "menu"), item.id);
     await deleteDoc(menuDoc);
 
     onClose();
@@ -108,14 +143,53 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
         <ImageUploadInput setImage={setImage} image={image} setImagePreview={setImagePreview} />
 
         {imagePreview && (
-          <img src={imagePreview} alt="Preview" style={{ maxWidth: "100px", marginTop: "10px", borderRadius: "5px" }} />
+          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              style={{ 
+                maxWidth: "100px", 
+                marginTop: "10px", 
+                borderRadius: "5px",
+                opacity: isDeletingImage ? 0.5 : 1 
+              }} 
+            />
+            <IconButton
+              aria-label="delete image"
+              onClick={handleDeleteImage}
+              disabled={isDeletingImage}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                color: 'error.main',
+                backgroundColor: 'background.paper',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
         )}
 
-        <Button disabled={isLoading} variant="contained" color="error" onClick={handleDelete}>
-          Удалить
+        <Button 
+          disabled={isLoading || isDeletingImage} 
+          variant="contained" 
+          color="error" 
+          onClick={handleDelete}
+          sx={{ mt: 2 }}
+        >
+          Удалить товар
         </Button>
 
-        <Button loading={isLoading} variant="contained" color="primary" onClick={handleSave}>
+        <Button 
+          disabled={isLoading || isDeletingImage} 
+          variant="contained" 
+          color="primary" 
+          onClick={handleSave}
+        >
           Сохранить
         </Button>
       </DialogContent>

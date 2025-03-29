@@ -245,131 +245,140 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           </IconButton>
         </Box>
 
-        {["1", "2"].map((parentId) => (
-          <Box
-            key={parentId}
-            sx={{ mb: 3, p: 2, border: "1px solid #ddd", borderRadius: 2 }}
-          >
-            <Typography variant="h6">
-              Навигация {parentId === "1" ? "1st" : "2nd"}
-            </Typography>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          {["1", "2"].map((parentId) => (
+            <Box
+              key={parentId}
+              sx={{ 
+                flex: 1,
+                mb: 3, 
+                p: 2, 
+                border: "1px solid #ddd", 
+                borderRadius: 2,
+                minHeight: "100%"
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Навигация {parentId === "1" ? "1st" : "2nd"}
+              </Typography>
 
-            {categories
-              .filter((cat) => cat.parentId === parentId)
-              .map((item) => (
-                <Box
-                  key={item.id}
-                  sx={{
-                    mb: 2,
-                    p: 2,
-                    border: "1px solid #ddd",
-                    borderRadius: 2,
-                  }}
-                >
+              {categories
+                .filter((cat) => cat.parentId === parentId)
+                .map((item) => (
                   <Box
+                    key={item.id}
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      mb: 1,
+                      mb: 2,
+                      p: 2,
+                      border: "1px solid #ddd",
+                      borderRadius: 2,
                     }}
                   >
-                    <Typography variant="body1">Категория</Typography>
-
-                    <Button
-                      variant="contained"
-                      component="label"
-                      startIcon={<CloudUploadIcon />}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 1,
+                      }}
                     >
-                      {item.icon ? "Заменить" : "Добавить иконку"}
-                      <input
-                        type="file"
-                        hidden
-                        onChange={(e) =>
-                          handleIconUpload(item.id, e.target.files?.[0] || null)
-                        }
-                      />
-                    </Button>
+                      <Typography variant="body1">Категория</Typography>
 
-                    {item.icon && (
-                      <>
-                        <img
-                          src={item.icon}
-                          alt="icon"
-                          style={{ width: 40, height: 40, borderRadius: 4 }}
+                      <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<CloudUploadIcon />}
+                      >
+                        {item.icon ? "Заменить" : "Добавить иконку"}
+                        <input
+                          type="file"
+                          hidden
+                          onChange={(e) =>
+                            handleIconUpload(item.id, e.target.files?.[0] || null)
+                          }
                         />
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteIcon(item.id)}
+                      </Button>
+
+                      {item.icon && (
+                        <>
+                          <img
+                            src={item.icon}
+                            alt="icon"
+                            style={{ width: 40, height: 40, borderRadius: 4 }}
+                          />
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteIcon(item.id)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </>
+                      )}
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                      {["ru", "ro", "en"].map((lang) => (
+                        <TextField
+                          key={lang}
+                          label={lang.toUpperCase()}
+                          value={item[lang as keyof Category]}
+                          onChange={(e) =>
+                            handleInputChange(
+                              item.id,
+                              lang as "ru" | "ro" | "en",
+                              e.target.value
+                            )
+                          }
+                          sx={{ flex: 1 }}
+                          disabled={!editMode[item.id]}
+                          error={!!validationErrors[item.id]?.[lang]}
+                          helperText={validationErrors[item.id]?.[lang]}
+                        />
+                      ))}
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+                      {editMode[item.id] ? (
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={() => handleSaveCategory(item)}
+                          disabled={
+                            Object.keys(validationErrors[item.id] || {}).length >
+                            0
+                          }
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    )}
-                  </Box>
-
-                  <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-                    {["ru", "ro", "en"].map((lang) => (
-                      <TextField
-                        key={lang}
-                        label={lang.toUpperCase()}
-                        value={item[lang as keyof Category]}
-                        onChange={(e) =>
-                          handleInputChange(
-                            item.id,
-                            lang as "ru" | "ro" | "en",
-                            e.target.value
-                          )
-                        }
-                        sx={{ flex: 1 }}
-                        disabled={!editMode[item.id]}
-                        error={!!validationErrors[item.id]?.[lang]}
-                        helperText={validationErrors[item.id]?.[lang]}
-                      />
-                    ))}
-                  </Box>
-
-                  <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                    {editMode[item.id] ? (
+                          Сохранить
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="contained"
+                          onClick={() => handleEditMode(item.id)}
+                        >
+                          Редактировать
+                        </Button>
+                      )}
                       <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => handleSaveCategory(item)}
-                        disabled={
-                          Object.keys(validationErrors[item.id] || {}).length >
-                          0
-                        }
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleDeleteCategory(item.id)}
                       >
-                        Сохранить
+                        Удалить категорию
                       </Button>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        onClick={() => handleEditMode(item.id)}
-                      >
-                        Редактировать
-                      </Button>
-                    )}
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleDeleteCategory(item.id)}
-                    >
-                      Удалить категорию
-                    </Button>
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
 
-            <Button
-              variant="contained"
-              onClick={() => handleAddCategory(parentId)}
-              sx={{ mt: 2 }}
-            >
-              Добавить категорию
-            </Button>
-          </Box>
-        ))}
+              <Button
+                variant="contained"
+                onClick={() => handleAddCategory(parentId)}
+                sx={{ mt: 2 }}
+              >
+                Добавить категорию
+              </Button>
+            </Box>
+          ))}
+        </Box>
       </Box>
     </Modal>
   );
