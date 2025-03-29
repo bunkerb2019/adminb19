@@ -4,9 +4,10 @@ import {Button, Typography, Box} from '@mui/material';
 type ImageUploadInputProps = {
   image: File | null,
   setImage: React.Dispatch<React.SetStateAction<File | null>>
+  setImagePreview?: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, image}) => {
+export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, image, setImagePreview}) => {
   const [error, setError] = useState<string>('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +28,9 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, ima
         return;
       }
       setImage(file);
+      if (setImagePreview) {
+        setImagePreview(URL.createObjectURL(file));
+      }
     }
   };
 
