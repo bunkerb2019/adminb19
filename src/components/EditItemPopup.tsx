@@ -15,6 +15,7 @@ import { collection, deleteDoc, doc } from "firebase/firestore";
 import { db, storage } from "../firebase/firebaseConfig";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
 import { getDownloadURL, ref } from 'firebase/storage';
+import { ImageUploadInput } from "./ImageUploadInput";
 
 interface EditItemPopupProps {
   open: boolean;
@@ -34,7 +35,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
   const [weight, setWeight] = useState<number | "">("");
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
-  const [image, setImage] = useState<File | undefined>();
+  const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | undefined>();
 
   useEffect(() => {
@@ -61,14 +62,6 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
       }
     }
   }, [item]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
 
   const {saveItem, isLoading} = useCreateMenuItem({item, onSave})
 
@@ -112,7 +105,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({ open, onClose, item, onSa
           </Select>
         </FormControl>
 
-        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <ImageUploadInput setImage={setImage} image={image} setImagePreview={setImagePreview} />
 
         {imagePreview && (
           <img src={imagePreview} alt="Preview" style={{ maxWidth: "100px", marginTop: "10px", borderRadius: "5px" }} />
