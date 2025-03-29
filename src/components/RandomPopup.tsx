@@ -24,7 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useQueryClient } from "@tanstack/react-query";
 import { setDoc } from "firebase/firestore";
 import useCategories from "../modules/categories/useCategories";
-import  {useRandomSettings}  from "../hooks/useRandomSettings";
+import { useRandomSettings } from "../hooks/useRandomSettings";
 import queryKeys from "../utils/queryKeys";
 import { getRandomSettingsDoc } from "../utils/firebaseDoc";
 import { Category, RandomSettings, RandomizerConfig } from "../types";
@@ -46,15 +46,14 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
   const [newRandomizer, setNewRandomizer] = useState<
     Omit<RandomizerConfig, "id">
   >({
-    name: "",
     slotTitle: "",
     navigation: "1",
     categoryIds: [],
     active: true,
+    name: "",
   });
 
   const [errors, setErrors] = useState({
-    name: "",
     slotTitle: "",
     categories: "",
   });
@@ -75,8 +74,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
 
   const handleAddRandomizer = () => {
     const validationErrors = {
-      name: !newRandomizer.name ? "Введите название" : "",
-      slotTitle: !newRandomizer.slotTitle ? "Введите заголовок" : "",
+      slotTitle: !newRandomizer.slotTitle ? "Введите название" : "",
       categories:
         newRandomizer.categoryIds.length === 0 ? "Выберите категории" : "",
     };
@@ -96,11 +94,11 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     }));
 
     setNewRandomizer({
-      name: "",
       slotTitle: "",
       navigation: "1",
       categoryIds: [],
       active: true,
+      name: "",
     });
   };
 
@@ -136,9 +134,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
   const isFormValid = useMemo(() => {
     return (
       settings.randomizers.length > 0 &&
-      settings.randomizers.every(
-        (r) => r.name && r.slotTitle && r.categoryIds.length > 0
-      )
+      settings.randomizers.every((r) => r.slotTitle && r.categoryIds.length > 0)
     );
   }, [settings.randomizers]);
 
@@ -185,18 +181,6 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
               <TextField
                 fullWidth
                 label="Название рандомайзера*"
-                value={newRandomizer.name}
-                onChange={(e) =>
-                  setNewRandomizer({ ...newRandomizer, name: e.target.value })
-                }
-                error={!!errors.name}
-                helperText={errors.name}
-                sx={{ mb: 2 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Заголовок для пользователя*"
                 value={newRandomizer.slotTitle}
                 onChange={(e) =>
                   setNewRandomizer({
@@ -293,7 +277,6 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                 startIcon={<AddIcon />}
                 onClick={handleAddRandomizer}
                 disabled={
-                  !newRandomizer.name ||
                   !newRandomizer.slotTitle ||
                   newRandomizer.categoryIds.length === 0
                 }
@@ -334,9 +317,6 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                       <Box display="flex" justifyContent="space-between">
                         <Box>
                           <Typography fontWeight="bold">
-                            {randomizer.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
                             {randomizer.slotTitle}
                           </Typography>
                           <Typography variant="body2">
