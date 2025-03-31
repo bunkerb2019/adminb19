@@ -5,36 +5,47 @@ import { db } from "../firebase/firebaseConfig";
 import { Order } from "../types"; // ✅ Убеждаемся, что используем общий интерфейс Order
 
 const useOrders = () => {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-    const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, "menu"));
-                const data: Order[] = [];
-                querySnapshot.docs.forEach((doc) => data.push(doc.data() as Order));
+  const refreshData = () => setRefreshFlag((prev) => !prev);
 
-                setOrders(data);
-                setFilteredOrders(data);
-            } catch (error) {
-                console.error("Ошибка загрузки заказов:", error);
-            }
-        };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "menu"));
+        const data: Order[] = [];
+        querySnapshot.docs.forEach((doc) =>
+          data.push({ ...doc.data(), id: doc.id } as Order)
+        );
 
-        fetchOrders();
-    }, []);
+        setOrders(data);
+        setFilteredOrders(data);
+      } catch (error) {
+        console.error("Ошибка загрузки заказов:", error);
+      }
+    };
 
-    useEffect(() => {
-        let filtered = orders;
+    fetchOrders();
+  }, [refreshFlag]);
 
-        if (categoryFilter) filtered = filtered.filter((order) => order.category === categoryFilter);
+  useEffect(() => {
+    let filtered = orders;
 
-        setFilteredOrders(filtered);
-    }, [ categoryFilter, orders]);
+    if (categoryFilter)
+      filtered = filtered.filter((order) => order.category === categoryFilter);
 
-    return { filteredOrders, categoryFilter, setCategoryFilter };
+    setFilteredOrders(filtered);
+  }, [categoryFilter, orders]);
+
+  return {
+    filteredOrders,
+    categoryFilter,
+    setCategoryFilter,
+    refreshData, // Добавляем функцию обновления
+  };
 };
 
 export default useOrders;
