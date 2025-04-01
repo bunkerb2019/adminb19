@@ -1,50 +1,50 @@
-// useOrders.ts
 import { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import { Order } from "../types"; // ✅ Убеждаемся, что используем общий интерфейс Order
+import { Order } from "../types";
 
 const useOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [refreshFlag, setRefreshFlag] = useState(false);
-
-  const refreshData = () => setRefreshFlag((prev) => !prev);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "menu"));
-        const data: Order[] = [];
-        querySnapshot.docs.forEach((doc) =>
-          data.push({ ...doc.data(), id: doc.id } as Order)
-        );
+    const q = query(collection(db, "menu"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const items: Order[] = [];
+      querySnapshot.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() } as Order);
+      });
+      setOrders(items);
+      setIsLoading(false);
+    });
 
-        setOrders(data);
-        setFilteredOrders(data);
-      } catch (error) {
-        console.error("Ошибка загрузки заказов:", error);
-      }
-    };
-
-    fetchOrders();
-  }, [refreshFlag]);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
-    let filtered = orders;
-
-    if (categoryFilter)
-      filtered = filtered.filter((order) => order.category === categoryFilter);
-
-    setFilteredOrders(filtered);
+    if (categoryFilter) {
+      setFilteredOrders(
+        orders.filter((order) => order.category === categoryFilter)
+      );
+    } else {
+      setFilteredOrders([...orders]);
+    }
   }, [categoryFilter, orders]);
 
+  const refreshData = () => {
+    setIsLoading(true);
+    // Данные обновятся автоматически через onSnapshot
+  };
+
   return {
+    orders,
     filteredOrders,
     categoryFilter,
     setCategoryFilter,
-    refreshData, // Добавляем функцию обновления
+    refreshData,
+    isLoading,
   };
 };
 

@@ -8,7 +8,7 @@ import Sidebar from "./components/Sidebar";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
+import { LanguageProvider } from '../src/contexts/LanguageContext.tsx';
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient()
 
@@ -22,7 +22,8 @@ const App = () => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
+   <LanguageProvider>
+     <QueryClientProvider client={queryClient}>
       {/* настройка и просмотр query если требуется  */}
       {/* <ReactQueryDevtools initialIsOpen={false} /> */} 
     <ThemeProvider theme={theme} defaultMode="dark">
@@ -44,6 +45,7 @@ const App = () => {
       </Router>
     </ThemeProvider>
     </QueryClientProvider>
+   </LanguageProvider>
   );
 };
 

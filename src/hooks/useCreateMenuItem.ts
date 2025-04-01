@@ -32,7 +32,12 @@ const useCreateMenuItem = ({ item, onSave }: Props) => {
         try {
           let updatedItem = { id: menuDoc.id, ...item };
 
-          updatedItem = { ...updatedItem, ...newItem };
+          updatedItem = {
+            ...updatedItem,
+            ...newItem,
+            weightUnit: newItem.weightUnit || "g",
+            currency: newItem.currency || "$",
+          };
 
           if (image) {
             // Если есть новое изображение, загружаем его в Storage
@@ -47,7 +52,7 @@ const useCreateMenuItem = ({ item, onSave }: Props) => {
 
           await setDoc(menuDoc, updatedItem, { merge: true });
 
-          onSave?.(updatedItem);
+          onSave?.(updatedItem as Order);
         } catch (error) {
           console.error(error);
         } finally {
