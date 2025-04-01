@@ -32,17 +32,28 @@ export interface Order {
 
 
 
+export interface RandomSettings {
+  pageTitle: {
+    ru: string;
+    ro: string;
+    en: string;
+  };
+  pageDescription: {
+    ru: string;
+    ro: string;
+    en: string;
+  };
+  randomizers: RandomizerConfig[];
+}
+
 export interface RandomizerConfig {
   id: string;
-  name: string;
-  slotTitle: string;
+  name: {
+    ru: string;
+    ro: string;
+    en: string;
+  };
   navigation: string;
   categoryIds: string[];
   active: boolean;
-}
-
-export interface RandomSettings {
-  randomizers: RandomizerConfig[];
-  
-
 }
