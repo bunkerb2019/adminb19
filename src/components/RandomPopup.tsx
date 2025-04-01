@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import { useQueryClient } from "@tanstack/react-query";
 import { setDoc } from "firebase/firestore";
 import useCategories from "../modules/categories/useCategories";
@@ -41,6 +42,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
   const { data: categories = [] } = useCategories();
   const { data: currentSettings } = useRandomSettings();
   const [languageTab, setLanguageTab] = useState<"ru" | "ro" | "en">("ru");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [settings, setSettings] = useState<RandomSettings>({
     pageTitle: { ru: "", ro: "", en: "" },
@@ -48,10 +50,8 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     randomizers: [],
   });
 
-  const [newRandomizer, setNewRandomizer] = useState<
-    Omit<RandomizerConfig, "id">
-  >({
-    name: {
+  const [newRandomizer, setNewRandomizer] = useState<Omit<RandomizerConfig, "id">>({
+    slotTitle: {
       ru: "",
       ro: "",
       en: "",
@@ -70,7 +70,11 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     if (currentSettings) {
       setSettings({
         pageTitle: currentSettings.pageTitle || { ru: "", ro: "", en: "" },
-        pageDescription: currentSettings.pageDescription || { ru: "", ro: "", en: "" },
+        pageDescription: currentSettings.pageDescription || {
+          ru: "",
+          ro: "",
+          en: "",
+        },
         randomizers: currentSettings.randomizers || [],
       });
     }
@@ -84,8 +88,18 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     [categories, newRandomizer.navigation]
   );
 
+  const handleSlotTitleChange = (lang: "ru" | "ro" | "en", value: string) => {
+    setNewRandomizer((prev) => ({
+      ...prev,
+      slotTitle: {
+        ...prev.slotTitle,
+        [lang]: value,
+      },
+    }));
+  };
+
   const handlePageTitleChange = (lang: "ru" | "ro" | "en", value: string) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       pageTitle: {
         ...prev.pageTitle,
@@ -94,8 +108,11 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     }));
   };
 
-  const handlePageDescriptionChange = (lang: "ru" | "ro" | "en", value: string) => {
-    setSettings(prev => ({
+  const handlePageDescriptionChange = (
+    lang: "ru" | "ro" | "en",
+    value: string
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       pageDescription: {
         ...prev.pageDescription,
@@ -104,21 +121,13 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     }));
   };
 
-  const handleNameChange = (lang: "ru" | "ro" | "en", value: string) => {
-    setNewRandomizer((prev) => ({
-      ...prev,
-      name: {
-        ...prev.name,
-        [lang]: value,
-      },
-    }));
-  };
-
   const handleAddRandomizer = () => {
     const validationErrors = {
-      name: !newRandomizer.name.ru ? "Введите название (RU)" : "",
+      name: !newRandomizer.slotTitle?.ru ? "Введите название (RU)" : "",
       categories:
-        newRandomizer.categoryIds.length === 0 ? "Выберите категории" : "",
+        !newRandomizer.categoryIds || newRandomizer.categoryIds.length === 0
+          ? "Выберите категории"
+          : "",
     };
 
     setErrors(validationErrors);
@@ -127,7 +136,14 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
 
     const newConfig: RandomizerConfig = {
       id: Date.now().toString(),
-      ...newRandomizer,
+      slotTitle: {
+        ru: newRandomizer.slotTitle?.ru || "Без названия",
+        ro: newRandomizer.slotTitle?.ro || newRandomizer.slotTitle?.ru || "",
+        en: newRandomizer.slotTitle?.en || newRandomizer.slotTitle?.ru || "",
+      },
+      navigation: newRandomizer.navigation || "1",
+      categoryIds: newRandomizer.categoryIds || [],
+      active: newRandomizer.active !== false,
     };
 
     setSettings((prev) => ({
@@ -136,7 +152,57 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     }));
 
     setNewRandomizer({
-      name: { ru: "", ro: "", en: "" },
+      slotTitle: { ru: "", ro: "", en: "" },
+      navigation: "1",
+      categoryIds: [],
+      active: true,
+    });
+  };
+
+  const handleEditRandomizer = (id: string) => {
+    const randomizerToEdit = settings.randomizers.find(r => r.id === id);
+    if (randomizerToEdit) {
+      setNewRandomizer({
+        slotTitle: randomizerToEdit.slotTitle,
+        navigation: randomizerToEdit.navigation,
+        categoryIds: randomizerToEdit.categoryIds,
+        active: randomizerToEdit.active
+      });
+      setEditingId(id);
+    }
+  };
+
+  const handleUpdateRandomizer = () => {
+    if (!editingId) return;
+
+    const validationErrors = {
+      name: !newRandomizer.slotTitle?.ru ? "Введите название (RU)" : "",
+      categories:
+        !newRandomizer.categoryIds || newRandomizer.categoryIds.length === 0
+          ? "Выберите категории"
+          : "",
+    };
+
+    setErrors(validationErrors);
+
+    if (Object.values(validationErrors).some(Boolean)) return;
+
+    setSettings(prev => ({
+      ...prev,
+      randomizers: prev.randomizers.map(r => 
+        r.id === editingId ? {
+          ...r,
+          slotTitle: newRandomizer.slotTitle,
+          navigation: newRandomizer.navigation,
+          categoryIds: newRandomizer.categoryIds,
+          active: newRandomizer.active
+        } : r
+      )
+    }));
+
+    setEditingId(null);
+    setNewRandomizer({
+      slotTitle: { ru: "", ro: "", en: "" },
       navigation: "1",
       categoryIds: [],
       active: true,
@@ -179,7 +245,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
       settings.pageTitle.ru &&
       settings.randomizers.length > 0 &&
       settings.randomizers.every(
-        (r) => r.name.ru && r.categoryIds.length > 0
+        (r) => r?.slotTitle?.ru && r.categoryIds?.length > 0
       )
     );
   }, [settings]);
@@ -193,7 +259,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "90%",
-          maxWidth: 1000,
+          maxWidth: 1200,
           bgcolor: "background.paper",
           p: 3,
           borderRadius: 2,
@@ -207,7 +273,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 3,
+            mb: 2,
           }}
         >
           <Typography variant="h5">Управление рандомайзерами</Typography>
@@ -216,16 +282,15 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           </IconButton>
         </Box>
 
-        {/* Page Title and Description Section */}
-        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
+        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
             Настройки страницы
           </Typography>
-          
+
           <Tabs
             value={languageTab}
             onChange={(_, newValue) => setLanguageTab(newValue)}
-            sx={{ mb: 2 }}
+            sx={{ mb: 1 }}
           >
             <Tab label="RU" value="ru" />
             <Tab label="RO" value="ro" />
@@ -234,35 +299,55 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
 
           <TextField
             fullWidth
-            label={`Заголовок страницы (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
+            size="small"
+            label={`Заголовок страницы (${languageTab.toUpperCase()})${
+              languageTab === "ru" ? "*" : ""
+            }`}
             value={settings.pageTitle[languageTab]}
             onChange={(e) => handlePageTitleChange(languageTab, e.target.value)}
-            sx={{ mb: 2 }}
+            sx={{ mb: 1 }}
             required={languageTab === "ru"}
           />
 
           <TextField
             fullWidth
+            size="small"
             label={`Описание страницы (${languageTab.toUpperCase()})`}
             value={settings.pageDescription[languageTab]}
-            onChange={(e) => handlePageDescriptionChange(languageTab, e.target.value)}
+            onChange={(e) =>
+              handlePageDescriptionChange(languageTab, e.target.value)
+            }
             multiline
-            rows={3}
+            rows={2}
           />
         </Paper>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={7}>
             <Paper elevation={3} sx={{ p: 3, height: "100%" }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Добавить новый рандомайзер
+                {editingId ? "Редактировать рандомайзер" : "Добавить новый рандомайзер"}
               </Typography>
+
+              <Tabs
+                value={languageTab}
+                onChange={(_, newValue) => setLanguageTab(newValue)}
+                sx={{ mb: 2 }}
+              >
+                <Tab label="RU" value="ru" />
+                <Tab label="RO" value="ro" />
+                <Tab label="EN" value="en" />
+              </Tabs>
 
               <TextField
                 fullWidth
-                label={`Название рандомайзера (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
-                value={newRandomizer.name[languageTab]}
-                onChange={(e) => handleNameChange(languageTab, e.target.value)}
+                label={`Название рандомайзера (${languageTab.toUpperCase()})${
+                  languageTab === "ru" ? "*" : ""
+                }`}
+                value={newRandomizer.slotTitle[languageTab]}
+                onChange={(e) =>
+                  handleSlotTitleChange(languageTab, e.target.value)
+                }
                 error={!!errors.name && languageTab === "ru"}
                 helperText={languageTab === "ru" ? errors.name : ""}
                 sx={{ mb: 2 }}
@@ -349,20 +434,39 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
               <Button
                 fullWidth
                 variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAddRandomizer}
+                startIcon={editingId ? <EditIcon /> : <AddIcon />}
+                onClick={editingId ? handleUpdateRandomizer : handleAddRandomizer}
                 disabled={
-                  !newRandomizer.name.ru ||
+                  !newRandomizer.slotTitle.ru ||
                   newRandomizer.categoryIds.length === 0
                 }
               >
-                Добавить рандомайзер
+                {editingId ? "Обновить" : "Добавить"}
               </Button>
+
+              {editingId && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                  onClick={() => {
+                    setEditingId(null);
+                    setNewRandomizer({
+                      slotTitle: { ru: "", ro: "", en: "" },
+                      navigation: "1",
+                      categoryIds: [],
+                      active: true,
+                    });
+                  }}
+                >
+                  Отменить редактирование
+                </Button>
+              )}
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 3, height: "100%" }}>
+          <Grid item xs={12} md={5}>
+            <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 Список рандомайзеров ({settings.randomizers.length})
               </Typography>
@@ -391,9 +495,15 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                       <Box display="flex" justifyContent="space-between">
                         <Box>
                           <Typography fontWeight="bold">
-                            {randomizer.name.ru} / {randomizer.name.ro} / {randomizer.name.en}
+                            {randomizer.slotTitle?.ru || "Без названия"}
                           </Typography>
-                          <Typography variant="body2">
+                          <Typography variant="body2" color="text.secondary">
+                            {randomizer.slotTitle?.ro || ""}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {randomizer.slotTitle?.en || ""}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 1 }}>
                             Навигация: {randomizer.navigation}
                           </Typography>
                           <Box
@@ -424,15 +534,24 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                           flexDirection="column"
                           alignItems="flex-end"
                         >
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleRemoveRandomizer(randomizer.id)
-                            }
-                            sx={{ mb: 1 }}
-                          >
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
+                          <Box>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditRandomizer(randomizer.id)}
+                              sx={{ mb: 1 }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleRemoveRandomizer(randomizer.id)
+                              }
+                              sx={{ mb: 1 }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                           <FormControlLabel
                             control={
                               <Switch
@@ -456,7 +575,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           </Grid>
         </Grid>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <Button
             variant="contained"
             color="primary"

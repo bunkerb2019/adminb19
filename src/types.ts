@@ -46,12 +46,18 @@ export interface RandomSettings {
   randomizers: RandomizerConfig[];
 }
 
+
 export interface RandomizerConfig {
   id: string;
-  name: {
+  slotTitle: {
     ru: string;
     ro: string;
     en: string;
+  };
+  name?: { // Добавлено для обратной совместимости
+    ru: string;
+    ro?: string;
+    en?: string;
   };
   navigation: string;
   categoryIds: string[];
