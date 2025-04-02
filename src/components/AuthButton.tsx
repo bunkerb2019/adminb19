@@ -1,16 +1,8 @@
-import { onAuthStateChanged, User } from "firebase/auth";
 import { loginWithGoogle, logout } from "../firebase/auth";
-import { auth } from "../firebase/firebaseConfig";
-import { useState } from "react";
+import { useAuth } from "../providers/AuthProvider";
 
 const AuthButton = () => {
-
-  const [user, setUser] = useState<User | undefined>()
-
-  onAuthStateChanged(auth, (user) => {
-    setUser(user ?? undefined)
-  });
-  
+  const { user } = useAuth();
 
   return (
     <button onClick={user ? logout : loginWithGoogle}>
