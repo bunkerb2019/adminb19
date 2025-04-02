@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 type Props = {
   order: Order;
   onEdit: (order: Order) => void;
-  currentLanguage?: 'ru' | 'ro' | 'en'; // Добавляем параметр языка
+  currentLanguage?: "ru" | "ro" | "en"; // Добавляем параметр языка
 };
 
-const OrderListItem = ({ order, onEdit, currentLanguage = 'ru' }: Props) => {
+const OrderListItem = ({ order, onEdit, currentLanguage = "ru" }: Props) => {
   const [imgUrl, setImgUrl] = useState<string | undefined>();
 
   useEffect(() => {
@@ -20,13 +20,15 @@ const OrderListItem = ({ order, onEdit, currentLanguage = 'ru' }: Props) => {
   }, [imgUrl, order.image]);
 
   // Функция для получения текста на текущем языке
-  const getLocalizedText = (text: string | { ru: string; ro?: string; en?: string }) => {
-    if (typeof text === 'string') return text; // Для обратной совместимости
-    return text[currentLanguage] || text.ru || '';
+  const getLocalizedText = (
+    text: string | { ru: string; ro?: string; en?: string }
+  ) => {
+    if (typeof text === "string") return text; // Для обратной совместимости
+    return text[currentLanguage] || text.ru || "";
   };
 
   return (
-    <Grid item xs={12} sm={6} md={3} key={order.id}>
+    <Grid item xs={12} sm={6} md={2} key={order.id}>
       <Card
         sx={{
           height: 220,

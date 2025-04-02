@@ -83,7 +83,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
   const { data } = useCategories();
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Добавить товар</DialogTitle>
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}

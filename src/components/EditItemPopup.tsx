@@ -182,7 +182,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
         {getText({
           ru: "Редактировать товар",
