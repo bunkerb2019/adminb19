@@ -39,7 +39,7 @@ const Orders = () => {
   const [addPopupOpen, setAddPopupOpen] = useState(false);
   const [editPopupOpen, setEditPopupOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list"); 
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const { getText } = useLanguage();
@@ -140,7 +140,6 @@ const Orders = () => {
             <ToggleButton value="grid" aria-label="grid view">
               {getText({ ru: "Сетка", en: "Grid", ro: "Grila" })}
             </ToggleButton>
-            
           </ToggleButtonGroup>
         </Grid>
 
@@ -178,11 +177,7 @@ const Orders = () => {
             </Card>
           </Grid>
 
-          <OrderList
-            orders={paginatedOrders}
-            onEdit={handleEdit}
-            getText={getText}
-          />
+          <OrderList orders={paginatedOrders} onEdit={handleEdit} />
         </Grid>
       ) : (
         <TableContainer component={Paper}>

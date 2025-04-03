@@ -18,13 +18,10 @@ const OrderListItem = ({ order, onEdit, currentLanguage = "ru" }: Props) => {
     const storageRef = ref(storage, order.image);
     getDownloadURL(storageRef).then(setImgUrl);
   }, [imgUrl, order.image]);
-
   // Функция для получения текста на текущем языке
-  const getLocalizedText = (
-    text: string | { ru: string; ro?: string; en?: string }
-  ) => {
+  const getLocalizedText = (text?: (typeof order)["name"]) => {
     if (typeof text === "string") return text; // Для обратной совместимости
-    return text[currentLanguage] || text.ru || "";
+    return text?.[currentLanguage] || text?.ru || "";
   };
 
   return (

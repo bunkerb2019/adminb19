@@ -5,19 +5,13 @@ import OrderListItem from "./OrderListItem";
 interface OrderListProps {
   orders: Order[];
   onEdit: (order: Order) => void;
-  getText: (text: string | { ru: string; ro?: string; en?: string }) => string;
 }
 
-const OrderList: React.FC<OrderListProps> = ({ orders, onEdit, getText }) => {
+const OrderList: React.FC<OrderListProps> = ({ orders, onEdit }) => {
   return (
     <>
       {orders.map((order) => (
-        <OrderListItem
-          key={order.id}
-          order={order}
-          onEdit={onEdit}
-          getText={getText}
-        />
+        <OrderListItem key={order.id} order={order} onEdit={onEdit} />
       ))}
     </>
   );

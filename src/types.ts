@@ -12,7 +12,7 @@ export interface Category {
 export interface Order {
   id: string;
   name: {
-    ru: string;
+    ru?: string;
     ro?: string;
     en?: string;
   };
