@@ -1,20 +1,26 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { db } from "../firebase/firebaseConfig";
-import { 
-  Box, 
-  Button, 
-  Container, 
-  Grid, 
-  TextField, 
-  Typography, 
-  IconButton, 
-  Modal, 
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  TextField,
+  Typography,
+  IconButton,
+  Modal,
   Slider,
   Card,
   CardContent,
-  Divider
+  Divider,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -38,9 +44,15 @@ interface ColorPickerProps {
 }
 
 // Компонент для загрузки изображения
-const ImageUploader = ({ label, imageUrl, onFileChange, onDelete, imageType }: ImageUploaderProps) => {
+const ImageUploader = ({
+  label,
+  imageUrl,
+  onFileChange,
+  onDelete,
+  imageType,
+}: ImageUploaderProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
+
   return (
     <Box>
       <Typography variant="body1">{label}:</Typography>
@@ -63,7 +75,7 @@ const ImageUploader = ({ label, imageUrl, onFileChange, onDelete, imageType }: I
           </>
         )}
       </Box>
-      
+
       {/* Модальное окно для предпросмотра */}
       <Modal open={!!previewImage} onClose={() => setPreviewImage(null)}>
         <Box
@@ -78,7 +90,11 @@ const ImageUploader = ({ label, imageUrl, onFileChange, onDelete, imageType }: I
             borderRadius: 2,
           }}
         >
-          <img src={previewImage || ""} alt="Preview" style={{ maxWidth: "100%", maxHeight: "80vh" }} />
+          <img
+            src={previewImage || ""}
+            alt="Preview"
+            style={{ maxWidth: "100%", maxHeight: "80vh" }}
+          />
         </Box>
       </Modal>
     </Box>
@@ -106,13 +122,13 @@ interface SettingsData {
   welcomeBackground: string;
   companyLogo: string | null;
   welcomeImage: string | null;
-  
+
   // Шаг 2: Настройки UI
   backgroundColor: string;
   textColor: string;
   navbarColor: string;
   backgroundImage: string | null;
-  
+
   // Шаг 3: Настройки карточки товара
   cardTextColor: string;
   cardBorderColor: string;
@@ -141,11 +157,14 @@ const Settings = () => {
   // Настройки карточки товара
   const [cardTextColor, setCardTextColor] = useState<string>("#000000");
   const [cardBorderColor, setCardBorderColor] = useState<string>("#cccccc");
-  const [cardBackgroundColor, setCardBackgroundColor] = useState<string>("#ffffff");
+  const [cardBackgroundColor, setCardBackgroundColor] =
+    useState<string>("#ffffff");
   const [cardBackgroundOpacity, setCardBackgroundOpacity] = useState<number>(1);
   const [cardBlur, setCardBlur] = useState<number>(0);
   const [placeholderImage, setPlaceholderImage] = useState<string | null>(null);
-  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(null);
+  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(
+    null
+  );
 
   // Сохраняем изначальное состояние для проверки изменений
   const [initialSettings, setInitialSettings] = useState<SettingsData>({
@@ -162,9 +181,9 @@ const Settings = () => {
     cardBackgroundColor: "#ffffff",
     cardBackgroundOpacity: 1,
     cardBlur: 0,
-    placeholderImage: null
+    placeholderImage: null,
   });
-  
+
   const [settingsChanged, setSettingsChanged] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,14 +192,14 @@ const Settings = () => {
     const fetchSettings = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const docRef = doc(db, "settings", "default");
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          
+
           // Шаг 1: Настройки приветствия
           setWelcomeText(data.welcomeText || "");
           setWelcomeBackground(data.welcomeBackground || "#f0f0f0");
@@ -197,10 +216,14 @@ const Settings = () => {
           setCardTextColor(data.cardTextColor || "#000000");
           setCardBorderColor(data.cardBorderColor || "#cccccc");
           setCardBackgroundColor(data.cardBackgroundColor || "#ffffff");
-          setCardBackgroundOpacity(data.cardBackgroundOpacity !== undefined ? data.cardBackgroundOpacity : 1);
+          setCardBackgroundOpacity(
+            data.cardBackgroundOpacity !== undefined
+              ? data.cardBackgroundOpacity
+              : 1
+          );
           setCardBlur(data.cardBlur !== undefined ? data.cardBlur : 0);
           setPlaceholderImage(data.placeholderImage || null);
-          
+
           // Сохраняем изначальное состояние
           setInitialSettings({
             welcomeText: data.welcomeText || "",
@@ -214,14 +237,16 @@ const Settings = () => {
             cardTextColor: data.cardTextColor || "#000000",
             cardBorderColor: data.cardBorderColor || "#cccccc",
             cardBackgroundColor: data.cardBackgroundColor || "#ffffff",
-            cardBackgroundOpacity: data.cardBackgroundOpacity !== undefined ? data.cardBackgroundOpacity : 1,
+            cardBackgroundOpacity:
+              data.cardBackgroundOpacity !== undefined
+                ? data.cardBackgroundOpacity
+                : 1,
             cardBlur: data.cardBlur !== undefined ? data.cardBlur : 0,
-            placeholderImage: data.placeholderImage || null
+            placeholderImage: data.placeholderImage || null,
           });
         } else {
           // Если документа нет, создаем его с дефолтными значениями
           await updateDoc(docRef, initialSettings);
-
         }
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
@@ -250,24 +275,38 @@ const Settings = () => {
       cardBackgroundColor,
       cardBackgroundOpacity,
       cardBlur,
-      placeholderImage
+      placeholderImage,
     };
-    
+
     // Проверка на любые изменения или наличие новых файлов
-    const hasChanges = 
+    const hasChanges =
       JSON.stringify(currentSettings) !== JSON.stringify(initialSettings) ||
       companyLogoFile !== null ||
       welcomeFile !== null ||
       backgroundFile !== null ||
       placeholderImageFile !== null;
-    
+
     setSettingsChanged(hasChanges);
   }, [
-    welcomeText, welcomeBackground, companyLogo, welcomeImage,
-    backgroundColor, textColor, navbarColor, backgroundImage,
-    cardTextColor, cardBorderColor, cardBackgroundColor, cardBackgroundOpacity,
-    cardBlur, placeholderImage, companyLogoFile, welcomeFile, backgroundFile,
-    placeholderImageFile, initialSettings
+    welcomeText,
+    welcomeBackground,
+    companyLogo,
+    welcomeImage,
+    backgroundColor,
+    textColor,
+    navbarColor,
+    backgroundImage,
+    cardTextColor,
+    cardBorderColor,
+    cardBackgroundColor,
+    cardBackgroundOpacity,
+    cardBlur,
+    placeholderImage,
+    companyLogoFile,
+    welcomeFile,
+    backgroundFile,
+    placeholderImageFile,
+    initialSettings,
   ]);
 
   const updateSettings = async () => {
@@ -279,28 +318,36 @@ const Settings = () => {
       let newBackgroundImage = backgroundImage;
       if (backgroundFile) {
         const storageRef = ref(storage, `settings/backgroundImage`);
-        await uploadBytes(storageRef, backgroundFile);
+        await uploadBytes(storageRef, backgroundFile, {
+          cacheControl: "public, max-age=31536000, immutable",
+        });
         newBackgroundImage = await getDownloadURL(storageRef);
       }
 
       let newWelcomeImage = welcomeImage;
       if (welcomeFile) {
         const storageRef = ref(storage, `settings/welcomeImage`);
-        await uploadBytes(storageRef, welcomeFile);
+        await uploadBytes(storageRef, welcomeFile, {
+          cacheControl: "public, max-age=31536000, immutable",
+        });
         newWelcomeImage = await getDownloadURL(storageRef);
       }
 
       let newCompanyLogo = companyLogo;
       if (companyLogoFile) {
         const storageRef = ref(storage, `settings/companyLogo`);
-        await uploadBytes(storageRef, companyLogoFile);
+        await uploadBytes(storageRef, companyLogoFile, {
+          cacheControl: "public, max-age=31536000, immutable",
+        });
         newCompanyLogo = await getDownloadURL(storageRef);
       }
 
       let newPlaceholderImage = placeholderImage;
       if (placeholderImageFile) {
         const storageRef = ref(storage, `settings/placeholderImage`);
-        await uploadBytes(storageRef, placeholderImageFile);
+        await uploadBytes(storageRef, placeholderImageFile, {
+          cacheControl: "public, max-age=31536000, immutable",
+        });
         newPlaceholderImage = await getDownloadURL(storageRef);
       }
 
@@ -335,7 +382,7 @@ const Settings = () => {
       setWelcomeImage(newWelcomeImage);
       setCompanyLogo(newCompanyLogo);
       setPlaceholderImage(newPlaceholderImage);
-      
+
       // Обновляем изначальное состояние после сохранения
       setInitialSettings({
         welcomeText,
@@ -351,16 +398,16 @@ const Settings = () => {
         cardBackgroundColor,
         cardBackgroundOpacity,
         cardBlur,
-        placeholderImage: newPlaceholderImage
+        placeholderImage: newPlaceholderImage,
       });
-      
+
       // Сбрасываем флаг изменений и файлы
       setSettingsChanged(false);
       setBackgroundFile(null);
       setWelcomeFile(null);
       setCompanyLogoFile(null);
       setPlaceholderImageFile(null);
-      
+
       alert("Настройки успешно сохранены");
     } catch (error) {
       console.error("Ошибка при обновлении настроек:", error);
@@ -374,7 +421,7 @@ const Settings = () => {
   const deleteImage = async (type: string) => {
     let storagePath = "";
     let fieldName = "";
-    
+
     switch (type) {
       case "background":
         storagePath = "settings/backgroundImage";
@@ -399,13 +446,16 @@ const Settings = () => {
 
     try {
       setLoading(true);
-      
+
       // Удаление из Storage
       const storageRef = ref(storage, storagePath);
       try {
         await deleteObject(storageRef);
       } catch (storageError) {
-        console.warn("Файл в хранилище не найден или уже был удален:", storageError);
+        console.warn(
+          "Файл в хранилище не найден или уже был удален:",
+          storageError
+        );
         // Продолжаем, даже если файл не найден в хранилище
       }
 
@@ -424,19 +474,19 @@ const Settings = () => {
           setPlaceholderImage(null);
           break;
       }
-      
+
       // Обновляем Firestore
       const updateData: Record<string, any> = {};
       updateData[fieldName] = null;
-      
+
       await updateDoc(doc(db, "settings", "default"), updateData);
-      
+
       // Обновляем initialSettings, чтобы отразить изменения
-      setInitialSettings(prev => ({
+      setInitialSettings((prev) => ({
         ...prev,
-        [fieldName]: null
+        [fieldName]: null,
       }));
-      
+
       alert(`Изображение успешно удалено`);
     } catch (error) {
       console.error("Ошибка при удалении изображения:", error);
@@ -447,7 +497,10 @@ const Settings = () => {
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
+  const handleFileChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    setter: (file: File | null) => void
+  ) => {
     if (e.target.files && e.target.files.length > 0) {
       setter(e.target.files[0]);
     } else {
@@ -460,26 +513,26 @@ const Settings = () => {
       <Typography variant="h4" gutterBottom align="center">
         Настройки
       </Typography>
-      
+
       {/* Индикатор загрузки */}
       {loading && (
         <Typography variant="body1" align="center" sx={{ my: 2 }}>
           Загрузка...
         </Typography>
       )}
-      
+
       {/* Сообщение об ошибке */}
       {error && (
         <Typography variant="body1" color="error" align="center" sx={{ my: 2 }}>
           {error}
         </Typography>
       )}
-      
+
       {/* Кнопка сохранения (фиксированная) */}
-      <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
+      <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+        <Button
+          variant="contained"
+          color="primary"
           onClick={updateSettings}
           disabled={!settingsChanged || loading}
           startIcon={<SaveIcon />}
@@ -488,17 +541,17 @@ const Settings = () => {
           Сохранить
         </Button>
       </Box>
-      
+
       <Grid container spacing={3}>
         {/* Колонка 1: Настройки приветствия */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Шаг 1: Настройка приветствия
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <TextField
                 label="Текст приветствия"
                 fullWidth
@@ -509,23 +562,23 @@ const Settings = () => {
                 rows={2}
                 disabled={loading}
               />
-              
-              <ColorPicker 
-                label="Цвет фона приветствия" 
-                value={welcomeBackground} 
-                onChange={setWelcomeBackground} 
+
+              <ColorPicker
+                label="Цвет фона приветствия"
+                value={welcomeBackground}
+                onChange={setWelcomeBackground}
               />
-              
+
               <Box sx={{ mt: 2 }}>
-                <ImageUploader 
-                  label="Логотип компании" 
+                <ImageUploader
+                  label="Логотип компании"
                   imageUrl={companyLogo}
                   onFileChange={(e) => handleFileChange(e, setCompanyLogoFile)}
                   onDelete={deleteImage}
                   imageType="logo"
                 />
               </Box>
-              
+
               {/* <Box sx={{ mt: 2 }}>
                 <ImageUploader 
                   label="Картинка приветствия" 
@@ -538,45 +591,47 @@ const Settings = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Колонка 2: Настройки UI */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Шаг 2: Настройки внешний Вид
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
-              <Typography variant="body1" gutterBottom>Цвета:</Typography>
-              
+
+              <Typography variant="body1" gutterBottom>
+                Цвета:
+              </Typography>
+
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Фон" 
-                    value={backgroundColor} 
-                    onChange={setBackgroundColor} 
+                  <ColorPicker
+                    label="Фон"
+                    value={backgroundColor}
+                    onChange={setBackgroundColor}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Текст" 
-                    value={textColor} 
-                    onChange={setTextColor} 
+                  <ColorPicker
+                    label="Текст"
+                    value={textColor}
+                    onChange={setTextColor}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Панель" 
-                    value={navbarColor} 
-                    onChange={setNavbarColor} 
+                  <ColorPicker
+                    label="Панель"
+                    value={navbarColor}
+                    onChange={setNavbarColor}
                   />
                 </Grid>
               </Grid>
-              
+
               <Box sx={{ mt: 3 }}>
-                <ImageUploader 
-                  label="Фоновая картинка" 
+                <ImageUploader
+                  label="Фоновая картинка"
                   imageUrl={backgroundImage}
                   onFileChange={(e) => handleFileChange(e, setBackgroundFile)}
                   onDelete={deleteImage}
@@ -586,45 +641,49 @@ const Settings = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Колонка 3: Настройки карточки товара */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Шаг 3: Настройки карточки товара
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Цвет текста" 
-                    value={cardTextColor} 
-                    onChange={setCardTextColor} 
+                  <ColorPicker
+                    label="Цвет текста"
+                    value={cardTextColor}
+                    onChange={setCardTextColor}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Цвет рамки" 
-                    value={cardBorderColor} 
-                    onChange={setCardBorderColor} 
+                  <ColorPicker
+                    label="Цвет рамки"
+                    value={cardBorderColor}
+                    onChange={setCardBorderColor}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <ColorPicker 
-                    label="Цвет фона" 
-                    value={cardBackgroundColor} 
-                    onChange={setCardBackgroundColor} 
+                  <ColorPicker
+                    label="Цвет фона"
+                    value={cardBackgroundColor}
+                    onChange={setCardBackgroundColor}
                   />
                 </Grid>
               </Grid>
-              
+
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>Прозрачность фона:</Typography>
+                <Typography variant="body2" gutterBottom>
+                  Прозрачность фона:
+                </Typography>
                 <Slider
                   value={cardBackgroundOpacity}
-                  onChange={(_, newValue) => setCardBackgroundOpacity(newValue as number)}
+                  onChange={(_, newValue) =>
+                    setCardBackgroundOpacity(newValue as number)
+                  }
                   step={0.01}
                   min={0}
                   max={1}
@@ -633,9 +692,11 @@ const Settings = () => {
                   disabled={loading}
                 />
               </Box>
-              
+
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>Размытие фона (px):</Typography>
+                <Typography variant="body2" gutterBottom>
+                  Размытие фона (px):
+                </Typography>
                 <Slider
                   value={cardBlur}
                   onChange={(_, newValue) => setCardBlur(newValue as number)}
@@ -646,12 +707,14 @@ const Settings = () => {
                   disabled={loading}
                 />
               </Box>
-              
+
               <Box sx={{ mt: 3 }}>
-                <ImageUploader 
-                  label="Заглушка фото" 
+                <ImageUploader
+                  label="Заглушка фото"
                   imageUrl={placeholderImage}
-                  onFileChange={(e) => handleFileChange(e, setPlaceholderImageFile)}
+                  onFileChange={(e) =>
+                    handleFileChange(e, setPlaceholderImageFile)
+                  }
                   onDelete={deleteImage}
                   imageType="placeholder"
                 />

@@ -43,7 +43,10 @@ const useCreateMenuItem = ({ item, onSave }: Props) => {
             // Если есть новое изображение, загружаем его в Storage
             const imagePath = `images/${menuDoc.id}`;
             const storageRef = ref(storage, imagePath);
-            await uploadBytes(storageRef, image);
+
+            await uploadBytes(storageRef, image, {
+              cacheControl: "public, max-age=31536000, immutable",
+            });
             updatedItem = {
               ...updatedItem,
               image: imagePath, // Обновляем URL изображения
