@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (user && adminSettings) {
-      setIsAdmin(user.email === adminSettings.ownerEmail);
+    if (user && user.email && adminSettings) {
+      setIsAdmin(adminSettings.ownerEmail?.includes(user.email) ?? false);
     } else {
       setIsAdmin(false);
     }
