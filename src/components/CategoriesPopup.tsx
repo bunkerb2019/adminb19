@@ -46,9 +46,7 @@ interface CategoryPopupProps {
 }
 
 const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
-  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>(
-    {}
-  );
+  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>({});
   const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: { [field: string]: string };
@@ -59,13 +57,11 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    console.log({serverCategories, categories, isLoading, isRefetching})
-
-    if (isLoading || isRefetching) return
+    if (isLoading || isRefetching) return;
     if (!categories.length && serverCategories?.length) {
       setCategories(serverCategories);
     }
-  }, [categories.length, serverCategories, isRefetching, isLoading, categories]);
+  }, [categories.length, serverCategories, isRefetching, isLoading]);
 
   const validateCategory = (category: Category) => {
     const errors: { [field: string]: string } = {};
@@ -91,7 +87,6 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     );
     setCategories(updatedCategories);
 
-    // Update validation errors immediately
     setValidationErrors((prev) => ({
       ...prev,
       [id]: validateCategory(
@@ -133,7 +128,6 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
 
       const updatedCategory = { ...category, icon: updatedIcon };
 
-      // Optimistic update of local state
       setCategories((prev) =>
         prev.map((item) => (item.id === category.id ? updatedCategory : item))
       );
@@ -148,11 +142,9 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
             item.id === category.id ? updatedCategory : item
           );
         await updateDoc(docRef, { list: updatedCategories });
-        await queryClient.invalidateQueries({queryKey: queryKeys.categories()})
-        setCategories([])
+        await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+        setCategories([]);
       }
-
-    
     } catch (error) {
       console.error("Ошибка сохранения категории:", error);
     }
@@ -160,13 +152,12 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      
-      const docRef = getCategoriesDoc()
-      const newCategories = categories.filter(category => category.id !== id)
+      const docRef = getCategoriesDoc();
+      const newCategories = categories.filter((category) => category.id !== id);
       await updateDoc(docRef, { list: newCategories });
 
-      setCategories([])
-      queryClient.invalidateQueries({queryKey: queryKeys.categories()})
+      setCategories([]);
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
     } catch (error) {
       console.error("Ошибка удаления категории:", error);
     }
@@ -194,10 +185,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
       icon: "",
     };
 
-    // Optimistically update local state
     setCategories((prev) => [...prev, newCategory]);
-
-    // Initialize validation errors for the new category
     setValidationErrors((prev) => ({
       ...prev,
       [newCategory.id]: validateCategory(newCategory),
@@ -214,6 +202,19 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
     }
   };
 
+  const getNavigationTitle = (parentId: string) => {
+    switch (parentId) {
+      case "1":
+        return "1st";
+      case "2":
+        return "2nd";
+      case "3":
+        return "3rd";
+      default:
+        return `${parentId}th`;
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -222,7 +223,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 1050,
+          width: 1350,
           bgcolor: "background.paper",
           p: 3,
           borderRadius: 2,
@@ -246,20 +247,20 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
         </Box>
 
         <Box sx={{ display: "flex", gap: 3 }}>
-          {["1", "2"].map((parentId) => (
+          {["1", "2", "3"].map((parentId) => (
             <Box
               key={parentId}
-              sx={{ 
+              sx={{
                 flex: 1,
-                mb: 3, 
-                p: 2, 
-                border: "1px solid #ddd", 
+                mb: 3,
+                p: 2,
+                border: "1px solid #ddd",
                 borderRadius: 2,
-                minHeight: "100%"
+                minHeight: "100%",
               }}
             >
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Навигация {parentId === "1" ? "1st" : "2nd"}
+                Навигация {getNavigationTitle(parentId)}
               </Typography>
 
               {categories

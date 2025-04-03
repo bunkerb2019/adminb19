@@ -368,6 +368,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                 >
                   <MenuItem value="1">Навигация 1</MenuItem>
                   <MenuItem value="2">Навигация 2</MenuItem>
+                  <MenuItem value="3">Навигация 3</MenuItem>
                 </Select>
               </FormControl>
 
