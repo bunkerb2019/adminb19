@@ -75,6 +75,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
       price: Number(price),
       currency, // Add this
       category,
+      active: true,
     };
     saveItem(newItem, image ?? null);
     resetPopupState();

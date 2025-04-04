@@ -14,6 +14,8 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { Order } from "../types";
 import { collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
@@ -55,9 +57,11 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
   const [currentTab, setCurrentTab] = useState(0);
   const { getText } = useLanguage();
 
-// смена веса и цены!!!!!!!
-  const [weightUnit, setWeightUnit] = useState<'g' | 'ml' | 'kg'>('g');
-  const [currency, setCurrency] = useState<'MDL' | '$' | '€'>('$');
+  // смена веса и цены!!!!!!!
+  const [weightUnit, setWeightUnit] = useState<"g" | "ml" | "kg">("g");
+  const [currency, setCurrency] = useState<"MDL" | "$" | "€">("$");
+
+  const [active, setActive] = useState(true);
 
   useEffect(() => {
     if (item) {
@@ -79,9 +83,11 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
 
       setWeight(item.weight || "");
       setPrice(item.price || "");
-      setWeightUnit(item.weightUnit || 'g');
-      setCurrency(item.currency || '$');
+      setWeightUnit(item.weightUnit || "g");
+      setCurrency(item.currency || "$");
       setCategory(item.category ?? "");
+
+      setActive(item.active !== false);
 
       if (item.image) {
         const storageRef = ref(storage, item.image);
@@ -119,6 +125,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
         price: Number(price),
         currency,
         category,
+        active,
       },
       image
     );
@@ -331,6 +338,22 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
             ))}
           </Select>
         </FormControl>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={getText({
+            ru: "Активный товар",
+            en: "Active product",
+            ro: "Produs activ",
+          })}
+          sx={{ mb: 2 }}
+        />
 
         <ImageUploadInput
           setImage={setImage}

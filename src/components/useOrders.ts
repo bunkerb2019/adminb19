@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, query } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import { Order } from "../types";
 
@@ -38,6 +38,12 @@ const useOrders = () => {
     // Данные обновятся автоматически через onSnapshot
   };
 
+  const deleteOrders = async (ids: string[]) => {
+    // Реализация удаления нескольких заказов
+    // Например, для Firebase:
+    await Promise.all(ids.map(id => deleteDoc(doc(db, "menu", id))));
+  };
+
   return {
     orders,
     filteredOrders,
@@ -45,6 +51,7 @@ const useOrders = () => {
     setCategoryFilter,
     refreshData,
     isLoading,
+    deleteOrders
   };
 };
 

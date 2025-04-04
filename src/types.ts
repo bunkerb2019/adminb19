@@ -28,6 +28,7 @@ export interface Order {
   image?: string;
   category: string;
   type?: ReactNode;
+  active?: boolean; // Добавляем новое поле
 }
 
 

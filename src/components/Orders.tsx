@@ -20,9 +20,13 @@ import {
   TableRow,
   Pagination,
   SelectChangeEvent,
+  Checkbox,
+  Box,
+  Switch,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
 import useOrders from "../components/useOrders";
 import AddItemPopup from "../components/AddItemPopup";
 import EditItemPopup from "../components/EditItemPopup";
@@ -30,17 +34,24 @@ import { Order } from "../types";
 import OrderList from "./OrderList";
 import useCategories from "../modules/categories/useCategories";
 import { getDownloadURL, ref } from "firebase/storage";
-import { storage } from "../firebase/firebaseConfig";
+import { db, storage } from "../firebase/firebaseConfig";
 import { useLanguage } from "../contexts/LanguageContext";
+import { doc, updateDoc } from "firebase/firestore";
 
 const Orders = () => {
-  const { filteredOrders, categoryFilter, setCategoryFilter, refreshData } =
-    useOrders();
+  const {
+    filteredOrders,
+    categoryFilter,
+    setCategoryFilter,
+    refreshData,
+    deleteOrders,
+  } = useOrders();
   const [addPopupOpen, setAddPopupOpen] = useState(false);
   const [editPopupOpen, setEditPopupOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const itemsPerPage = 10;
   const { getText } = useLanguage();
 
@@ -80,6 +91,7 @@ const Orders = () => {
 
   const handleCategoryChange = (e: SelectChangeEvent) => {
     setCategoryFilter(e.target.value);
+    setSelectedIds([]); // Сброс выбора при изменении фильтра
   };
 
   const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -94,6 +106,31 @@ const Orders = () => {
   ) => {
     if (newViewMode !== null) {
       setViewMode(newViewMode);
+    }
+  };
+
+  // Обработчик выделения/снятия выделения элемента
+  const handleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
+
+  // Обработчик выделения всех элементов на странице
+  const handleSelectAll = () => {
+    if (selectedIds.length === paginatedOrders.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedOrders.map((order) => order.id));
+    }
+  };
+
+  // Обработчик массового удаления
+  const handleBulkDelete = async () => {
+    if (selectedIds.length > 0) {
+      await deleteOrders(selectedIds);
+      setSelectedIds([]);
+      refreshData();
     }
   };
 
@@ -144,17 +181,33 @@ const Orders = () => {
         </Grid>
 
         <Grid item xs={12} md={6} textAlign="right">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setAddPopupOpen(true)}
-          >
-            {getText({
-              ru: "Добавить товар",
-              en: "Add item",
-              ro: "Adăugați produs",
-            })}
-          </Button>
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+            {selectedIds.length > 0 && (
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={handleBulkDelete}
+              >
+                {getText({
+                  ru: `Удалить (${selectedIds.length})`,
+                  en: `Delete (${selectedIds.length})`,
+                  ro: `Șterge (${selectedIds.length})`,
+                })}
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setAddPopupOpen(true)}
+            >
+              {getText({
+                ru: "Добавить товар",
+                en: "Add item",
+                ro: "Adăugați produs",
+              })}
+            </Button>
+          </Box>
         </Grid>
       </Grid>
 
@@ -177,13 +230,31 @@ const Orders = () => {
             </Card>
           </Grid>
 
-          <OrderList orders={paginatedOrders} onEdit={handleEdit} />
+          <OrderList
+            orders={paginatedOrders}
+            onEdit={handleEdit}
+            selectedIds={selectedIds}
+            onSelect={handleSelect}
+          />
         </Grid>
       ) : (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={
+                      selectedIds.length > 0 &&
+                      selectedIds.length < paginatedOrders.length
+                    }
+                    checked={
+                      paginatedOrders.length > 0 &&
+                      selectedIds.length === paginatedOrders.length
+                    }
+                    onChange={handleSelectAll}
+                  />
+                </TableCell>
                 <TableCell>
                   {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
                 </TableCell>
@@ -210,7 +281,16 @@ const Orders = () => {
             </TableHead>
             <TableBody>
               {paginatedOrders.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow
+                  key={order.id}
+                  selected={selectedIds.includes(order.id)}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.includes(order.id)}
+                      onChange={() => handleSelect(order.id)}
+                    />
+                  </TableCell>
                   <TableCell>{getText(order.name)}</TableCell>
                   <TableCell>{order.category}</TableCell>
                   <TableCell>
@@ -252,6 +332,22 @@ const Orders = () => {
                       })}
                     </Button>
                   </TableCell>
+                  <TableCell>
+                    {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+                  </TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={order.active !== false}
+                      onChange={(e) => {
+                        const menuDoc = doc(db, "menu", order.id);
+                        updateDoc(menuDoc, {
+                          active: e.target.checked,
+                        });
+                      }}
+                      color="primary"
+                      size="small"
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -264,7 +360,10 @@ const Orders = () => {
           <Pagination
             count={pageCount}
             page={page}
-            onChange={(_, value) => setPage(value)}
+            onChange={(_, value) => {
+              setPage(value);
+              setSelectedIds([]); // Сброс выбора при смене страницы
+            }}
             color="primary"
           />
         </Grid>
