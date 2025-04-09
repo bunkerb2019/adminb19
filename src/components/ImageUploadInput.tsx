@@ -21,9 +21,9 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, ima
         setImage(null);
         return;
       }
-      // Check if file size exceeds 5MB
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File size exceeds 5MB limit.');
+      // Check if file size exceeds 1MB
+      if (file.size > 1 * 1024 * 1024) {
+        setError('File size exceeds 1MB limit.');
         setImage(null);
         return;
       }
