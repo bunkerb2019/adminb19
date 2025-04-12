@@ -28,7 +28,6 @@ import SaveIcon from "@mui/icons-material/Save";
 
 const storage = getStorage();
 
-// Типы для пропсов компонентов
 interface ImageUploaderProps {
   label: string;
   imageUrl: string | null;
@@ -43,7 +42,6 @@ interface ColorPickerProps {
   onChange: (value: string) => void;
 }
 
-// Компонент для загрузки изображения
 const ImageUploader = ({
   label,
   imageUrl,
@@ -76,7 +74,6 @@ const ImageUploader = ({
         )}
       </Box>
 
-      {/* Модальное окно для предпросмотра */}
       <Modal open={!!previewImage} onClose={() => setPreviewImage(null)}>
         <Box
           sx={{
@@ -101,7 +98,6 @@ const ImageUploader = ({
   );
 };
 
-// Компонент для цветового выбора
 const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
   <TextField
     type="color"
@@ -114,59 +110,51 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
   />
 );
 
-// Интерфейс для структуры настроек
 interface SettingsData {
   [key: string]: any;
-  // Шаг 1: Настройки приветствия
   welcomeText: string;
   welcomeBackground: string;
   companyLogo: string | null;
   welcomeImage: string | null;
-
-  // Шаг 2: Настройки UI
   backgroundColor: string;
   textColor: string;
   navbarColor: string;
   backgroundImage: string | null;
-
-  // Шаг 3: Настройки карточки товара
+  BackgroundOpacity: number;
+  navbarOpacity: number;
   cardTextColor: string;
   cardBorderColor: string;
   cardBackgroundColor: string;
   cardBackgroundOpacity: number;
   cardBlur: number;
   placeholderImage: string | null;
+  uiLogo: string | null;
 }
 
 const Settings = () => {
-  // Настройки приветствия
   const [welcomeText, setWelcomeText] = useState<string>("");
   const [welcomeBackground, setWelcomeBackground] = useState<string>("#f0f0f0");
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [companyLogoFile, setCompanyLogoFile] = useState<File | null>(null);
   const [welcomeImage, setWelcomeImage] = useState<string | null>(null);
   const [welcomeFile, setWelcomeFile] = useState<File | null>(null);
-
-  // Настройки UI
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [textColor, setTextColor] = useState<string>("#000000");
   const [navbarColor, setNavbarColor] = useState<string>("#333333");
+  const [navbarOpacity, setNavbarOpacity] = useState<number>(1);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-
-  // Настройки карточки товара
   const [cardTextColor, setCardTextColor] = useState<string>("#000000");
   const [cardBorderColor, setCardBorderColor] = useState<string>("#cccccc");
-  const [cardBackgroundColor, setCardBackgroundColor] =
-    useState<string>("#ffffff");
+  const [cardBackgroundColor, setCardBackgroundColor] = useState<string>("#ffffff");
   const [cardBackgroundOpacity, setCardBackgroundOpacity] = useState<number>(1);
+  const [BackgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [cardBlur, setCardBlur] = useState<number>(0);
   const [placeholderImage, setPlaceholderImage] = useState<string | null>(null);
-  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(
-    null
-  );
+  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(null);
+  const [uiLogo, setUiLogo] = useState<string | null>(null);
+  const [uiLogoFile, setUiLogoFile] = useState<File | null>(null);
 
-  // Сохраняем изначальное состояние для проверки изменений
   const [initialSettings, setInitialSettings] = useState<SettingsData>({
     welcomeText: "",
     welcomeBackground: "#f0f0f0",
@@ -180,8 +168,11 @@ const Settings = () => {
     cardBorderColor: "#cccccc",
     cardBackgroundColor: "#ffffff",
     cardBackgroundOpacity: 1,
+    BackgroundOpacity: 1,
+    navbarOpacity: 1,
     cardBlur: 0,
     placeholderImage: null,
+    uiLogo: null,
   });
 
   const [settingsChanged, setSettingsChanged] = useState<boolean>(false);
@@ -200,31 +191,24 @@ const Settings = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
 
-          // Шаг 1: Настройки приветствия
           setWelcomeText(data.welcomeText || "");
           setWelcomeBackground(data.welcomeBackground || "#f0f0f0");
           setCompanyLogo(data.companyLogo || null);
           setWelcomeImage(data.welcomeImage || null);
-
-          // Шаг 2: Настройки UI
           setBackgroundColor(data.backgroundColor || "#ffffff");
           setTextColor(data.textColor || "#000000");
           setNavbarColor(data.navbarColor || "#333333");
           setBackgroundImage(data.backgroundImage || null);
-
-          // Шаг 3: Настройки карточки товара
           setCardTextColor(data.cardTextColor || "#000000");
           setCardBorderColor(data.cardBorderColor || "#cccccc");
           setCardBackgroundColor(data.cardBackgroundColor || "#ffffff");
-          setCardBackgroundOpacity(
-            data.cardBackgroundOpacity !== undefined
-              ? data.cardBackgroundOpacity
-              : 1
-          );
-          setCardBlur(data.cardBlur !== undefined ? data.cardBlur : 0);
+          setCardBackgroundOpacity(data.cardBackgroundOpacity ?? 1);
+          setCardBlur(data.cardBlur ?? 0);
           setPlaceholderImage(data.placeholderImage || null);
+          setUiLogo(data.uiLogo || null);
+          setBackgroundOpacity(data.BackgroundOpacity ?? 1);
+          setNavbarOpacity(data.navbarOpacity ?? 1);
 
-          // Сохраняем изначальное состояние
           setInitialSettings({
             welcomeText: data.welcomeText || "",
             welcomeBackground: data.welcomeBackground || "#f0f0f0",
@@ -237,15 +221,14 @@ const Settings = () => {
             cardTextColor: data.cardTextColor || "#000000",
             cardBorderColor: data.cardBorderColor || "#cccccc",
             cardBackgroundColor: data.cardBackgroundColor || "#ffffff",
-            cardBackgroundOpacity:
-              data.cardBackgroundOpacity !== undefined
-                ? data.cardBackgroundOpacity
-                : 1,
-            cardBlur: data.cardBlur !== undefined ? data.cardBlur : 0,
+            cardBackgroundOpacity: data.cardBackgroundOpacity ?? 1,
+            BackgroundOpacity: data.BackgroundOpacity ?? 1,
+            navbarOpacity: data.navbarOpacity ?? 1,
+            cardBlur: data.cardBlur ?? 0,
             placeholderImage: data.placeholderImage || null,
+            uiLogo: data.uiLogo || null,
           });
         } else {
-          // Если документа нет, создаем его с дефолтными значениями
           await updateDoc(docRef, initialSettings);
         }
       } catch (error) {
@@ -259,7 +242,6 @@ const Settings = () => {
     fetchSettings();
   }, []);
 
-  // Проверка на изменение настроек для активации кнопки сохранения
   useEffect(() => {
     const currentSettings: SettingsData = {
       welcomeText,
@@ -274,17 +256,20 @@ const Settings = () => {
       cardBorderColor,
       cardBackgroundColor,
       cardBackgroundOpacity,
+      BackgroundOpacity,
+      navbarOpacity,
       cardBlur,
       placeholderImage,
+      uiLogo,
     };
 
-    // Проверка на любые изменения или наличие новых файлов
     const hasChanges =
       JSON.stringify(currentSettings) !== JSON.stringify(initialSettings) ||
       companyLogoFile !== null ||
       welcomeFile !== null ||
       backgroundFile !== null ||
-      placeholderImageFile !== null;
+      placeholderImageFile !== null ||
+      uiLogoFile !== null;
 
     setSettingsChanged(hasChanges);
   }, [
@@ -300,12 +285,16 @@ const Settings = () => {
     cardBorderColor,
     cardBackgroundColor,
     cardBackgroundOpacity,
+    BackgroundOpacity,
+    navbarOpacity,
     cardBlur,
     placeholderImage,
+    uiLogo,
     companyLogoFile,
     welcomeFile,
     backgroundFile,
     placeholderImageFile,
+    uiLogoFile,
     initialSettings,
   ]);
 
@@ -314,7 +303,6 @@ const Settings = () => {
       setLoading(true);
       const docRef = doc(db, "settings", "default");
 
-      // Обработка загрузки файлов
       let newBackgroundImage = backgroundImage;
       if (backgroundFile) {
         const storageRef = ref(storage, `settings/backgroundImage`);
@@ -351,39 +339,43 @@ const Settings = () => {
         newPlaceholderImage = await getDownloadURL(storageRef);
       }
 
-      // Подготовка данных для обновления в Firestore
+      let newUiLogo = uiLogo;
+      if (uiLogoFile) {
+        const storageRef = ref(storage, `settings/uiLogo`);
+        await uploadBytes(storageRef, uiLogoFile, {
+          cacheControl: "public, max-age=31536000, immutable",
+        });
+        newUiLogo = await getDownloadURL(storageRef);
+      }
+
       const updatedSettings: Record<string, any> = {
-        // Шаг 1: Настройки приветствия
         welcomeText,
         welcomeBackground,
         companyLogo: newCompanyLogo,
         welcomeImage: newWelcomeImage,
-
-        // Шаг 2: Настройки UI
         backgroundColor,
         textColor,
         navbarColor,
         backgroundImage: newBackgroundImage,
-
-        // Шаг 3: Настройки карточки товара
+        navbarOpacity,
         cardTextColor,
         cardBorderColor,
         cardBackgroundColor,
         cardBackgroundOpacity,
+        BackgroundOpacity,
         cardBlur,
         placeholderImage: newPlaceholderImage,
+        uiLogo: newUiLogo,
       };
 
-      // Обновляем документ в Firestore
       await updateDoc(docRef, updatedSettings);
 
-      // Обновляем локальный стейт
       setBackgroundImage(newBackgroundImage);
       setWelcomeImage(newWelcomeImage);
       setCompanyLogo(newCompanyLogo);
       setPlaceholderImage(newPlaceholderImage);
+      setUiLogo(newUiLogo);
 
-      // Обновляем изначальное состояние после сохранения
       setInitialSettings({
         welcomeText,
         welcomeBackground,
@@ -397,16 +389,19 @@ const Settings = () => {
         cardBorderColor,
         cardBackgroundColor,
         cardBackgroundOpacity,
+        BackgroundOpacity,
+        navbarOpacity,
         cardBlur,
         placeholderImage: newPlaceholderImage,
+        uiLogo: newUiLogo,
       });
 
-      // Сбрасываем флаг изменений и файлы
       setSettingsChanged(false);
       setBackgroundFile(null);
       setWelcomeFile(null);
       setCompanyLogoFile(null);
       setPlaceholderImageFile(null);
+      setUiLogoFile(null);
 
       alert("Настройки успешно сохранены");
     } catch (error) {
@@ -439,6 +434,10 @@ const Settings = () => {
         storagePath = "settings/placeholderImage";
         fieldName = "placeholderImage";
         break;
+      case "uiLogo":
+        storagePath = "settings/uiLogo";
+        fieldName = "uiLogo";
+        break;
       default:
         console.error("Неизвестный тип изображения для удаления:", type);
         return;
@@ -447,19 +446,13 @@ const Settings = () => {
     try {
       setLoading(true);
 
-      // Удаление из Storage
       const storageRef = ref(storage, storagePath);
       try {
         await deleteObject(storageRef);
       } catch (storageError) {
-        console.warn(
-          "Файл в хранилище не найден или уже был удален:",
-          storageError
-        );
-        // Продолжаем, даже если файл не найден в хранилище
+        console.warn("Файл в хранилище не найден:", storageError);
       }
 
-      // Обновляем стейт
       switch (type) {
         case "background":
           setBackgroundImage(null);
@@ -473,15 +466,13 @@ const Settings = () => {
         case "placeholder":
           setPlaceholderImage(null);
           break;
+        case "uiLogo":
+          setUiLogo(null);
+          break;
       }
 
-      // Обновляем Firestore
-      const updateData: Record<string, any> = {};
-      updateData[fieldName] = null;
+      await updateDoc(doc(db, "settings", "default"), { [fieldName]: null });
 
-      await updateDoc(doc(db, "settings", "default"), updateData);
-
-      // Обновляем initialSettings, чтобы отразить изменения
       setInitialSettings((prev) => ({
         ...prev,
         [fieldName]: null,
@@ -514,21 +505,18 @@ const Settings = () => {
         Настройки
       </Typography>
 
-      {/* Индикатор загрузки */}
       {loading && (
         <Typography variant="body1" align="center" sx={{ my: 2 }}>
           Загрузка...
         </Typography>
       )}
 
-      {/* Сообщение об ошибке */}
       {error && (
         <Typography variant="body1" color="error" align="center" sx={{ my: 2 }}>
           {error}
         </Typography>
       )}
 
-      {/* Кнопка сохранения (фиксированная) */}
       <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
         <Button
           variant="contained"
@@ -543,7 +531,6 @@ const Settings = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Колонка 1: Настройки приветствия */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
@@ -578,28 +565,27 @@ const Settings = () => {
                   imageType="logo"
                 />
               </Box>
-
-              {/* <Box sx={{ mt: 2 }}>
-                <ImageUploader 
-                  label="Картинка приветствия" 
-                  imageUrl={welcomeImage}
-                  onFileChange={(e) => handleFileChange(e, setWelcomeFile)}
-                  onDelete={deleteImage}
-                  imageType="welcome"
-                />
-              </Box> */}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Колонка 2: Настройки UI */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Шаг 2: Настройки внешний Вид
+                Шаг 2: Настройки внешнего вида
               </Typography>
               <Divider sx={{ mb: 2 }} />
+
+              <Box sx={{ mb: 3 }}>
+                <ImageUploader
+                  label="Логотип (центр экрана)"
+                  imageUrl={uiLogo}
+                  onFileChange={(e) => handleFileChange(e, setUiLogoFile)}
+                  onDelete={deleteImage}
+                  imageType="uiLogo"
+                />
+              </Box>
 
               <Typography variant="body1" gutterBottom>
                 Цвета:
@@ -629,6 +615,42 @@ const Settings = () => {
                 </Grid>
               </Grid>
 
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  Прозрачность фона:
+                </Typography>
+                <Slider
+                  value={BackgroundOpacity}
+                  onChange={(_, newValue) =>
+                    setBackgroundOpacity(newValue as number)
+                  }
+                  step={0.01}
+                  min={0}
+                  max={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+                  disabled={loading}
+                />
+              </Box>
+
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  Прозрачность панели:
+                </Typography>
+                <Slider
+                  value={navbarOpacity}
+                  onChange={(_, newValue) =>
+                    setNavbarOpacity(newValue as number)
+                  }
+                  step={0.01}
+                  min={0}
+                  max={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+                  disabled={loading}
+                />
+              </Box>
+
               <Box sx={{ mt: 3 }}>
                 <ImageUploader
                   label="Фоновая картинка"
@@ -642,7 +664,6 @@ const Settings = () => {
           </Card>
         </Grid>
 
-        {/* Колонка 3: Настройки карточки товара */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
