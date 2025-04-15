@@ -7,13 +7,15 @@ interface OrderListProps {
   onEdit: (order: Order) => void;
   selectedIds: string[];
   onSelect: (id: string) => void;
+  onImageClick?: (imagePath: string) => Promise<void>;
 }
 
 const OrderList: React.FC<OrderListProps> = ({ 
   orders, 
   onEdit, 
   selectedIds,
-  onSelect 
+  onSelect,
+  onImageClick
 }) => {
   return (
     <>
@@ -24,6 +26,7 @@ const OrderList: React.FC<OrderListProps> = ({
           onEdit={onEdit}
           selected={selectedIds.includes(order.id)}
           onSelect={() => onSelect(order.id)}
+          onImageClick={onImageClick}
         />
       ))}
     </>

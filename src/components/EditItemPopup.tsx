@@ -129,6 +129,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
       },
       image
     );
+  setImage(null);
   };
 
   const handleDeleteImage = async () => {

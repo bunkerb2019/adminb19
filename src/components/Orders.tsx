@@ -23,6 +23,9 @@ import {
   Checkbox,
   Box,
   Switch,
+  TextField,
+  Dialog,
+  DialogContent,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -52,8 +55,30 @@ const Orders = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [nameFilter, setNameFilter] = useState("");
+  const [priceSort, setPriceSort] = useState<string>("");
+  const [imagePopupOpen, setImagePopupOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState("");
   const itemsPerPage = 10;
   const { getText } = useLanguage();
+
+  // Filter and sort orders with fallback values
+  const filteredAndSortedOrders = filteredOrders
+    .filter((order) => 
+      getText(order.name || '').toLowerCase().includes(nameFilter.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aPrice = a.price || 0;
+      const bPrice = b.price || 0;
+      const aName = getText(a.name || '');
+      const bName = getText(b.name || '');
+      
+      if (priceSort === "price-asc") return aPrice - bPrice;
+      if (priceSort === "price-desc") return bPrice - aPrice;
+      if (priceSort === "name-asc") return aName.localeCompare(bName);
+      if (priceSort === "name-desc") return bName.localeCompare(aName);
+      return 0;
+    });
 
   const handleEdit = (order: Order) => {
     setSelectedOrder(order);
@@ -91,11 +116,32 @@ const Orders = () => {
 
   const handleCategoryChange = (e: SelectChangeEvent) => {
     setCategoryFilter(e.target.value);
-    setSelectedIds([]); // Сброс выбора при изменении фильтра
+    setSelectedIds([]);
   };
 
-  const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
-  const paginatedOrders = filteredOrders.slice(
+  const handleNameFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNameFilter(e.target.value);
+    setPage(1);
+  };
+
+  const handlePriceSortChange = (e: SelectChangeEvent) => {
+    setPriceSort(e.target.value as string);
+    setPage(1);
+  };
+
+  const handleImageClick = async (imagePath: string) => {
+    try {
+      const storageRef = ref(storage, imagePath);
+      const url = await getDownloadURL(storageRef);
+      setCurrentImage(url);
+      setImagePopupOpen(true);
+    } catch (error) {
+      console.error("Error loading image:", error);
+    }
+  };
+
+  const pageCount = Math.ceil(filteredAndSortedOrders.length / itemsPerPage);
+  const paginatedOrders = filteredAndSortedOrders.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
@@ -109,14 +155,12 @@ const Orders = () => {
     }
   };
 
-  // Обработчик выделения/снятия выделения элемента
   const handleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
     );
   };
 
-  // Обработчик выделения всех элементов на странице
   const handleSelectAll = () => {
     if (selectedIds.length === paginatedOrders.length) {
       setSelectedIds([]);
@@ -125,7 +169,6 @@ const Orders = () => {
     }
   };
 
-  // Обработчик массового удаления
   const handleBulkDelete = async () => {
     if (selectedIds.length > 0) {
       await deleteOrders(selectedIds);
@@ -145,7 +188,46 @@ const Orders = () => {
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={6} md={3}>
+        <Grid item xs={12} md={3}>
+          <TextField
+            fullWidth
+            label={getText({ ru: "Поиск по названию", en: "Search by name", ro: "Căutare după nume" })}
+            variant="outlined"
+            value={nameFilter}
+            onChange={handleNameFilterChange}
+          />
+        </Grid>
+        
+        <Grid item xs={12} md={3}>
+          <FormControl fullWidth>
+            <InputLabel>
+              {getText({ ru: "Сортировка", en: "Sort by", ro: "Sortează după" })}
+            </InputLabel>
+            <Select
+              value={priceSort}
+              onChange={handlePriceSortChange}
+              label={getText({ ru: "Сортировка", en: "Sort by", ro: "Sortează după" })}
+            >
+              <MenuItem value="">
+                {getText({ ru: "Без сортировки", en: "No sorting", ro: "Fără sortare" })}
+              </MenuItem>
+              <MenuItem value="price-asc">
+                {getText({ ru: "Цена (по возрастанию)", en: "Price (low to high)", ro: "Preț (crescător)" })}
+              </MenuItem>
+              <MenuItem value="price-desc">
+                {getText({ ru: "Цена (по убыванию)", en: "Price (high to low)", ro: "Preț (descrescător)" })}
+              </MenuItem>
+              <MenuItem value="name-asc">
+                {getText({ ru: "Название (А-Я)", en: "Name (A-Z)", ro: "Denumire (A-Z)" })}
+              </MenuItem>
+              <MenuItem value="name-desc">
+                {getText({ ru: "Название (Я-А)", en: "Name (Z-A)", ro: "Denumire (Z-A)" })}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} md={3}>
           <FormControl fullWidth>
             <InputLabel>
               {getText({ ru: "Категория", en: "Category", ro: "Categorie" })}
@@ -164,23 +246,7 @@ const Orders = () => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={6} md={3}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={handleViewModeChange}
-            aria-label="view mode"
-          >
-            <ToggleButton value="list" aria-label="list view">
-              {getText({ ru: "Список", en: "List", ro: "Lista" })}
-            </ToggleButton>
-            <ToggleButton value="grid" aria-label="grid view">
-              {getText({ ru: "Сетка", en: "Grid", ro: "Grila" })}
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Grid>
-
-        <Grid item xs={12} md={6} textAlign="right">
+        <Grid item xs={12} md={3} textAlign="right">
           <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
             {selectedIds.length > 0 && (
               <Button
@@ -211,6 +277,24 @@ const Orders = () => {
         </Grid>
       </Grid>
 
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={12}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+          >
+            <ToggleButton value="list" aria-label="list view">
+              {getText({ ru: "Список", en: "List", ro: "Lista" })}
+            </ToggleButton>
+            <ToggleButton value="grid" aria-label="grid view">
+              {getText({ ru: "Сетка", en: "Grid", ro: "Grila" })}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Grid>
+      </Grid>
+
       {viewMode === "grid" ? (
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
@@ -235,6 +319,7 @@ const Orders = () => {
             onEdit={handleEdit}
             selectedIds={selectedIds}
             onSelect={handleSelect}
+            onImageClick={handleImageClick}
           />
         </Grid>
       ) : (
@@ -275,6 +360,9 @@ const Orders = () => {
                   {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}
                 </TableCell>
                 <TableCell>
+                  {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+                </TableCell>
+                <TableCell>
                   {getText({ ru: "Действия", en: "Actions", ro: "Acțiuni" })}
                 </TableCell>
               </TableRow>
@@ -291,25 +379,19 @@ const Orders = () => {
                       onChange={() => handleSelect(order.id)}
                     />
                   </TableCell>
-                  <TableCell>{getText(order.name)}</TableCell>
+                  <TableCell>{getText(order.name || '')}</TableCell>
                   <TableCell>{order.category}</TableCell>
                   <TableCell>
                     {order.image && (
                       <IconButton
-                        onClick={() => {
-                          const storageRef = ref(storage, order.image!);
-                          getDownloadURL(storageRef).then((url) => {
-                            window.open(url, "_blank");
-                          });
-                        }}
+                        onClick={() => handleImageClick(order.image!)}
                       >
                         <VisibilityIcon />
                       </IconButton>
                     )}
                   </TableCell>
                   <TableCell>
-                    {" "}
-                    {order.price} {order.currency || "$"}
+                    {order.price || 0} {order.currency || "$"}
                   </TableCell>
                   <TableCell>
                     {order.weight}{" "}
@@ -318,22 +400,6 @@ const Orders = () => {
                       : order.weightUnit === "ml"
                       ? "ml"
                       : "kg"}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleEdit(order)}
-                    >
-                      {getText({
-                        ru: "Редактировать",
-                        en: "Edit",
-                        ro: "Editați",
-                      })}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
                   </TableCell>
                   <TableCell>
                     <Switch
@@ -347,6 +413,19 @@ const Orders = () => {
                       color="primary"
                       size="small"
                     />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleEdit(order)}
+                    >
+                      {getText({
+                        ru: "Редактировать",
+                        en: "Edit",
+                        ro: "Editați",
+                      })}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -362,7 +441,7 @@ const Orders = () => {
             page={page}
             onChange={(_, value) => {
               setPage(value);
-              setSelectedIds([]); // Сброс выбора при смене страницы
+              setSelectedIds([]);
             }}
             color="primary"
           />
@@ -384,6 +463,33 @@ const Orders = () => {
           categories={categories?.map((cat) => getText(cat)) || []}
         />
       )}
+
+      <Dialog
+        open={imagePopupOpen}
+        onClose={() => setImagePopupOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent sx={{ textAlign: 'center', p: 2 }}>
+          <img
+            src={currentImage}
+            alt="Preview"
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '60vh',
+              objectFit: 'contain'
+            }}
+          />
+          <Box sx={{ mt: 2 }}>
+            <Button 
+              variant="contained" 
+              onClick={() => setImagePopupOpen(false)}
+            >
+              {getText({ ru: "Закрыть", en: "Close", ro: "Închide" })}
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };

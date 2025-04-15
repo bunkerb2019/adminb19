@@ -7,26 +7,27 @@ type ImageUploadInputProps = {
   setImagePreview?: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, image, setImagePreview}) => {
+export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({ setImage, image, setImagePreview }) => {
   const [error, setError] = useState<string>('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError('');
     const files = e.target.files;
     if (files && files[0]) {
-      // Check if the file is an image
       const file = files[0];
+
       if (!file.type.startsWith('image/')) {
         setError('Only image files are allowed.');
         setImage(null);
         return;
       }
-      // Check if file size exceeds 1MB
+
       if (file.size > 1 * 1024 * 1024) {
         setError('File size exceeds 1MB limit.');
         setImage(null);
         return;
       }
+
       setImage(file);
       if (setImagePreview) {
         setImagePreview(URL.createObjectURL(file));
@@ -34,20 +35,11 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, ima
     }
   };
 
-  const handleUpload = () => {
-    if (!image) {
-      setError('No file selected.');
-      return;
-    }
-    // Place your file upload logic here
-    console.log('Uploading file:', image);
-  };
-
   return (
     <Box>
       <input
         accept="image/*"
-        style={{display: 'none'}}
+        style={{ display: 'none' }}
         id="mui-file-upload"
         type="file"
         onChange={handleFileChange}
@@ -58,23 +50,15 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({setImage, ima
         </Button>
       </label>
       {image && (
-        <Typography variant="body1" sx={{mt: 2}}>
+        <Typography variant="body1" sx={{ mt: 2 }}>
           Selected file: {image.name}
         </Typography>
       )}
       {error && (
-        <Typography variant="body2" color="error" sx={{mt: 1}}>
+        <Typography variant="body2" color="error" sx={{ mt: 1 }}>
           {error}
         </Typography>
       )}
-      <Button
-        variant="contained"
-        sx={{mt: 2}}
-        onClick={handleUpload}
-        disabled={!image || !!error}
-      >
-        Upload
-      </Button>
     </Box>
   );
 };

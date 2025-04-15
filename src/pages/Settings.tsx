@@ -111,7 +111,7 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
 );
 
 interface SettingsData {
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
   welcomeText: string;
   welcomeBackground: string;
   companyLogo: string | null;
@@ -146,12 +146,15 @@ const Settings = () => {
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [cardTextColor, setCardTextColor] = useState<string>("#000000");
   const [cardBorderColor, setCardBorderColor] = useState<string>("#cccccc");
-  const [cardBackgroundColor, setCardBackgroundColor] = useState<string>("#ffffff");
+  const [cardBackgroundColor, setCardBackgroundColor] =
+    useState<string>("#ffffff");
   const [cardBackgroundOpacity, setCardBackgroundOpacity] = useState<number>(1);
   const [BackgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [cardBlur, setCardBlur] = useState<number>(0);
   const [placeholderImage, setPlaceholderImage] = useState<string | null>(null);
-  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(null);
+  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(
+    null
+  );
   const [uiLogo, setUiLogo] = useState<string | null>(null);
   const [uiLogoFile, setUiLogoFile] = useState<File | null>(null);
 
@@ -238,8 +241,8 @@ const Settings = () => {
         setLoading(false);
       }
     };
-
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -348,7 +351,7 @@ const Settings = () => {
         newUiLogo = await getDownloadURL(storageRef);
       }
 
-      const updatedSettings: Record<string, any> = {
+      const updatedSettings: SettingsData = {
         welcomeText,
         welcomeBackground,
         companyLogo: newCompanyLogo,
