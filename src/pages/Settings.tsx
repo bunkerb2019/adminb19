@@ -119,6 +119,7 @@ interface SettingsData {
   backgroundColor: string;
   textColor: string;
   navbarColor: string;
+  navbarTextColor: string;
   backgroundImage: string | null;
   BackgroundOpacity: number;
   navbarOpacity: number;
@@ -141,6 +142,7 @@ const Settings = () => {
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [textColor, setTextColor] = useState<string>("#000000");
   const [navbarColor, setNavbarColor] = useState<string>("#333333");
+  const [navbarTextColor, setNavbarTextColor] = useState<string>("#ffffff");
   const [navbarOpacity, setNavbarOpacity] = useState<number>(1);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
@@ -166,6 +168,7 @@ const Settings = () => {
     backgroundColor: "#ffffff",
     textColor: "#000000",
     navbarColor: "#333333",
+    navbarTextColor: "#ffffff",
     backgroundImage: null,
     cardTextColor: "#000000",
     cardBorderColor: "#cccccc",
@@ -200,6 +203,7 @@ const Settings = () => {
           setWelcomeImage(data.welcomeImage || null);
           setBackgroundColor(data.backgroundColor || "#ffffff");
           setTextColor(data.textColor || "#000000");
+          setNavbarTextColor(data.navbarTextColor || "#ffffff");
           setNavbarColor(data.navbarColor || "#333333");
           setBackgroundImage(data.backgroundImage || null);
           setCardTextColor(data.cardTextColor || "#000000");
@@ -220,6 +224,7 @@ const Settings = () => {
             backgroundColor: data.backgroundColor || "#ffffff",
             textColor: data.textColor || "#000000",
             navbarColor: data.navbarColor || "#333333",
+            navbarTextColor: data.navbarTextColor || "#333333",
             backgroundImage: data.backgroundImage || null,
             cardTextColor: data.cardTextColor || "#000000",
             cardBorderColor: data.cardBorderColor || "#cccccc",
@@ -264,6 +269,7 @@ const Settings = () => {
       cardBlur,
       placeholderImage,
       uiLogo,
+      navbarTextColor: ""
     };
 
     const hasChanges =
@@ -359,6 +365,7 @@ const Settings = () => {
         backgroundColor,
         textColor,
         navbarColor,
+        navbarTextColor,
         backgroundImage: newBackgroundImage,
         navbarOpacity,
         cardTextColor,
@@ -387,6 +394,7 @@ const Settings = () => {
         backgroundColor,
         textColor,
         navbarColor,
+        navbarTextColor,
         backgroundImage: newBackgroundImage,
         cardTextColor,
         cardBorderColor,
@@ -607,6 +615,13 @@ const Settings = () => {
                     label="Текст"
                     value={textColor}
                     onChange={setTextColor}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <ColorPicker
+                    label="Цвет АКТИВНОЙ навигации"
+                    value={navbarTextColor}
+                    onChange={setNavbarTextColor}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
