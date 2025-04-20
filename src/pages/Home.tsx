@@ -40,6 +40,7 @@ const Home = () => {
 
   return (
     <div>
+
       <StatisticsOverview stats={stats} />
     </div>
   );

@@ -1,28 +1,47 @@
-import { 
-  AppBar, 
-  Toolbar, 
-  IconButton, 
-  Typography, 
-  Switch, 
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
   Button,
   Box,
-  Avatar
+  Avatar,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import { useAuth } from "../providers/AuthProvider";
 import { logout } from "../firebase/auth";
 
-const Navbar = ({ toggleTheme, darkMode }: { toggleTheme: () => void; darkMode: boolean }) => {
+const Navbar = ({
+  toggleTheme,
+  darkMode,
+  toggleSidebar,
+}: {
+  toggleTheme: () => void;
+  darkMode: boolean;
+  toggleSidebar: () => void;
+}) => {
   const { user } = useAuth();
 
   return (
-    <AppBar position="static" elevation={1}>
+    <AppBar
+      position="static"
+      elevation={2}
+      sx={{
+        backgroundColor: darkMode ? "#ffffff" : "#121212",
+        color: darkMode ? "#000000" : "#ffffff",
+        transition: "all 0.3s ease",
+      }}
+    >
       <Toolbar sx={{ justifyContent: "space-between" }}>
+        {/* Левая часть */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton 
-            edge="start" 
-            color="inherit" 
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={toggleSidebar}
             aria-label="menu"
             sx={{ mr: 2 }}
           >
@@ -33,33 +52,66 @@ const Navbar = ({ toggleTheme, darkMode }: { toggleTheme: () => void; darkMode: 
           </Typography>
         </Box>
 
+        {/* Правая часть */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Switch 
-            checked={darkMode} 
-            onChange={toggleTheme} 
-            color="default"
-          />
-          
+          {/* Кастомный переключатель темы */}
+          <Box
+            onClick={toggleTheme}
+            sx={{
+              width: 50,
+              height: 28,
+              borderRadius: "50px",
+              backgroundColor: darkMode ? "#e0e0e0" : "#444",
+              display: "flex",
+              alignItems: "center",
+              padding: "3px",
+              cursor: "pointer",
+              transition: "background-color 0.3s ease",
+              position: "relative",
+            }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                left: darkMode ? "3px" : "calc(100% - 25px - 3px)",
+                width: 25,
+                height: 25,
+                borderRadius: "50%",
+                backgroundColor: darkMode ? "#fff" : "#000",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.3s ease",
+                color: darkMode ? "#000" : "#fff",
+              }}
+            >
+              {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+            </Box>
+          </Box>
+
+          {/* Аватар и выход */}
           {user && (
             <>
               {user.photoURL && (
-                <Avatar 
-                  src={user.photoURL} 
-                  sx={{ width: 36, height: 36 }}
-                />
+                <Avatar src={user.photoURL} sx={{ width: 36, height: 36 }} />
               )}
-              
+
               <Button
                 variant="outlined"
-                color="inherit"
                 startIcon={<ExitToAppIcon />}
                 onClick={logout}
                 sx={{
-                  textTransform: 'none',
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  textTransform: "none",
+                  borderRadius: "20px",
+                  padding: "6px 16px",
+                  borderColor: darkMode ? "#000" : "#fff",
+                  color: darkMode ? "#000" : "#fff",
+                  transition: "all 0.3s ease",
                   '&:hover': {
-                    borderColor: 'rgba(255, 255, 255, 0.7)'
-                  }
+                    backgroundColor: darkMode ? "#000" : "#fff",
+                    color: darkMode ? "#fff" : "#000",
+                    borderColor: darkMode ? "#000" : "#fff",
+                  },
                 }}
               >
                 Выйти
