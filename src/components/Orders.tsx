@@ -8,7 +8,6 @@ import {
   MenuItem,
   Button,
   Grid,
-  Card,
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
@@ -27,7 +26,6 @@ import {
   Dialog,
   DialogContent,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import useOrders from "../components/useOrders";
@@ -297,30 +295,13 @@ const Orders = () => {
 
       {viewMode === "grid" ? (
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 100,
-                cursor: "pointer",
-              }}
-              onClick={() => setAddPopupOpen(true)}
-            >
-              <IconButton>
-                <AddIcon fontSize="large" />
-              </IconButton>
-            </Card>
-          </Grid>
-
+          
           <OrderList
             orders={paginatedOrders}
             onEdit={handleEdit}
             selectedIds={selectedIds}
             onSelect={handleSelect}
-            onImageClick={handleImageClick}
-          />
+            onImageClick={handleImageClick} isMobile={false}          />
         </Grid>
       ) : (
         <TableContainer component={Paper}>
@@ -451,8 +432,7 @@ const Orders = () => {
       <AddItemPopup
         open={addPopupOpen}
         onClose={() => setAddPopupOpen(false)}
-        onAdd={handleAdd}
-      />
+        onAdd={handleAdd} isMobile={false}      />
 
       {selectedOrder && (
         <EditItemPopup
@@ -460,8 +440,7 @@ const Orders = () => {
           onClose={() => setEditPopupOpen(false)}
           item={selectedOrder}
           onSave={handleSave}
-          categories={categories?.map((cat) => getText(cat)) || []}
-        />
+          categories={categories?.map((cat) => getText(cat)) || []} isMobile={false}        />
       )}
 
       <Dialog

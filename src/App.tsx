@@ -11,26 +11,26 @@ import { AuthProvider, useAuth } from "./providers/AuthProvider";
 import Sidebar from "./components/Sidebar";
 import WelcomeScreen from "./components/WelcomeScreen";
 
-
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient();
 
 function AppContent() {
   const { isAdmin, isLoading } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // Устанавливаем начальную тему на темную
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
   const theme = createTheme({
     palette: {
-      mode: darkMode ? "light" : "dark",
+      mode: darkMode ? "dark" : "light", // Используем темную по умолчанию
     },
     typography: {
       fontFamily: 'Inter, sans-serif',
-    }
+    },
   });
 
   if (isLoading) {

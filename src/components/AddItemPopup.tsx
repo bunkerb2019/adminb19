@@ -22,6 +22,7 @@ interface AddItemPopupProps {
   open: boolean;
   onClose: () => void;
   onAdd: (newItem: Order) => void;
+  isMobile: boolean;
 }
 
 const AddItemPopup: React.FC<AddItemPopupProps> = ({

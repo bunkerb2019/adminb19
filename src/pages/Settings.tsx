@@ -512,257 +512,280 @@ const Settings = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom align="center">
-        Настройки
+    <Typography
+      variant="h4"
+      gutterBottom
+      align="center"
+      sx={{
+        fontWeight: 600,
+        letterSpacing: '0.5px',
+        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+        color: '#e0e0e0',
+        mb: 4,
+      }}
+    >
+      Настройки
+    </Typography>
+  
+    {loading && (
+      <Typography variant="body1" align="center" sx={{ my: 2 }}>
+        Загрузка...
       </Typography>
-
-      {loading && (
-        <Typography variant="body1" align="center" sx={{ my: 2 }}>
-          Загрузка...
-        </Typography>
-      )}
-
-      {error && (
-        <Typography variant="body1" color="error" align="center" sx={{ my: 2 }}>
-          {error}
-        </Typography>
-      )}
-
-      <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={updateSettings}
-          disabled={!settingsChanged || loading}
-          startIcon={<SaveIcon />}
-          size="large"
-        >
-          Сохранить
-        </Button>
-      </Box>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%" }}>
+    )}
+  
+    {error && (
+      <Typography variant="body1" color="error" align="center" sx={{ my: 2 }}>
+        {error}
+      </Typography>
+    )}
+  
+    <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={updateSettings}
+        disabled={!settingsChanged || loading}
+        startIcon={<SaveIcon />}
+        size="large"
+        sx={{
+          px: 4,
+          py: 1.5,
+          borderRadius: "1rem",
+          background: "linear-gradient(45deg, #2196f3, #21cbf3)",
+          boxShadow: "0 4px 20px rgba(33, 203, 243, 0.4)",
+          transition: "transform 0.2s ease, box-shadow 0.3s ease",
+          '&:hover': {
+            transform: 'scale(1.05)',
+            boxShadow: '0 6px 30px rgba(33, 203, 243, 0.6)',
+          },
+        }}
+      >
+        Сохранить
+      </Button>
+    </Box>
+  
+    <Grid container spacing={3}>
+      {[1, 2, 3].map((step, i) => (
+        <Grid item xs={12} md={4} key={i}>
+          <Card
+            sx={{
+              height: "100%",
+              borderRadius: "1.5rem",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+              transition: "all 0.3s ease-in-out",
+              '&:hover': {
+                boxShadow: "0 12px 25px rgba(0,0,0,0.25)",
+              },
+            }}
+          >
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Шаг 1: Настройка приветствия
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <TextField
-                label="Текст приветствия"
-                fullWidth
-                value={welcomeText}
-                onChange={(e) => setWelcomeText(e.target.value)}
-                margin="normal"
-                multiline
-                rows={2}
-                disabled={loading}
-              />
-
-              <ColorPicker
-                label="Цвет фона приветствия"
-                value={welcomeBackground}
-                onChange={setWelcomeBackground}
-              />
-
-              <Box sx={{ mt: 2 }}>
-                <ImageUploader
-                  label="Логотип компании"
-                  imageUrl={companyLogo}
-                  onFileChange={(e) => handleFileChange(e, setCompanyLogoFile)}
-                  onDelete={deleteImage}
-                  imageType="logo"
-                />
-              </Box>
+              {step === 1 && (
+                <>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    Шаг 1: Настройка приветствия
+                  </Typography>
+                  <Divider sx={{ mb: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+  
+                  <TextField
+                    label="Текст приветствия"
+                    fullWidth
+                    value={welcomeText}
+                    onChange={(e) => setWelcomeText(e.target.value)}
+                    margin="normal"
+                    multiline
+                    rows={2}
+                    disabled={loading}
+                  />
+  
+                  <ColorPicker
+                    label="Цвет фона приветствия"
+                    value={welcomeBackground}
+                    onChange={setWelcomeBackground}
+                  />
+  
+                  <Box sx={{ mt: 2 }}>
+                    <ImageUploader
+                      label="Логотип компании"
+                      imageUrl={companyLogo}
+                      onFileChange={(e) => handleFileChange(e, setCompanyLogoFile)}
+                      onDelete={deleteImage}
+                      imageType="logo"
+                    />
+                  </Box>
+                </>
+              )}
+  
+              {step === 2 && (
+                <>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    Шаг 2: Настройки внешнего вида
+                  </Typography>
+                  <Divider sx={{ mb: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+  
+                  <Box sx={{ mb: 3 }}>
+                    <ImageUploader
+                      label="Логотип (центр экрана)"
+                      imageUrl={uiLogo}
+                      onFileChange={(e) => handleFileChange(e, setUiLogoFile)}
+                      onDelete={deleteImage}
+                      imageType="uiLogo"
+                    />
+                  </Box>
+  
+                  <Typography variant="body1" gutterBottom>
+                    Цвета:
+                  </Typography>
+  
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <ColorPicker label="Фон" value={backgroundColor} onChange={setBackgroundColor} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <ColorPicker label="Текст" value={textColor} onChange={setTextColor} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <ColorPicker label="Цвет АКТИВНОЙ навигации" value={navbarTextColor} onChange={setNavbarTextColor} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <ColorPicker label="Панель" value={navbarColor} onChange={setNavbarColor} />
+                    </Grid>
+                  </Grid>
+  
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Прозрачность фона:
+                    </Typography>
+                    <Slider
+                      value={BackgroundOpacity}
+                      onChange={(_, newValue) => setBackgroundOpacity(newValue as number)}
+                      step={0.01}
+                      min={0}
+                      max={1}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: '#21cbf3',
+                        '& .MuiSlider-thumb': {
+                          boxShadow: '0 0 8px rgba(33, 203, 243, 0.6)',
+                        },
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+  
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Прозрачность панели:
+                    </Typography>
+                    <Slider
+                      value={navbarOpacity}
+                      onChange={(_, newValue) => setNavbarOpacity(newValue as number)}
+                      step={0.01}
+                      min={0}
+                      max={1}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: '#21cbf3',
+                        '& .MuiSlider-thumb': {
+                          boxShadow: '0 0 8px rgba(33, 203, 243, 0.6)',
+                        },
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+  
+                  <Box sx={{ mt: 3 }}>
+                    <ImageUploader
+                      label="Фоновая картинка"
+                      imageUrl={backgroundImage}
+                      onFileChange={(e) => handleFileChange(e, setBackgroundFile)}
+                      onDelete={deleteImage}
+                      imageType="background"
+                    />
+                  </Box>
+                </>
+              )}
+  
+              {step === 3 && (
+                <>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    Шаг 3: Настройки карточки товара
+                  </Typography>
+                  <Divider sx={{ mb: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+  
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <ColorPicker label="Цвет текста" value={cardTextColor} onChange={setCardTextColor} />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <ColorPicker label="Цвет рамки" value={cardBorderColor} onChange={setCardBorderColor} />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <ColorPicker label="Цвет фона" value={cardBackgroundColor} onChange={setCardBackgroundColor} />
+                    </Grid>
+                  </Grid>
+  
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Прозрачность фона:
+                    </Typography>
+                    <Slider
+                      value={cardBackgroundOpacity}
+                      onChange={(_, newValue) => setCardBackgroundOpacity(newValue as number)}
+                      step={0.01}
+                      min={0}
+                      max={1}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: '#21cbf3',
+                        '& .MuiSlider-thumb': {
+                          boxShadow: '0 0 8px rgba(33, 203, 243, 0.6)',
+                        },
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+  
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Размытие фона (px):
+                    </Typography>
+                    <Slider
+                      value={cardBlur}
+                      onChange={(_, newValue) => setCardBlur(newValue as number)}
+                      step={1}
+                      min={0}
+                      max={20}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: '#21cbf3',
+                        '& .MuiSlider-thumb': {
+                          boxShadow: '0 0 8px rgba(33, 203, 243, 0.6)',
+                        },
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+  
+                  <Box sx={{ mt: 3 }}>
+                    <ImageUploader
+                      label="Заглушка фото"
+                      imageUrl={placeholderImage}
+                      onFileChange={(e) => handleFileChange(e, setPlaceholderImageFile)}
+                      onDelete={deleteImage}
+                      imageType="placeholder"
+                    />
+                  </Box>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%" }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Шаг 2: Настройки внешнего вида
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <Box sx={{ mb: 3 }}>
-                <ImageUploader
-                  label="Логотип (центр экрана)"
-                  imageUrl={uiLogo}
-                  onFileChange={(e) => handleFileChange(e, setUiLogoFile)}
-                  onDelete={deleteImage}
-                  imageType="uiLogo"
-                />
-              </Box>
-
-              <Typography variant="body1" gutterBottom>
-                Цвета:
-              </Typography>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Фон"
-                    value={backgroundColor}
-                    onChange={setBackgroundColor}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Текст"
-                    value={textColor}
-                    onChange={setTextColor}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Цвет АКТИВНОЙ навигации"
-                    value={navbarTextColor}
-                    onChange={setNavbarTextColor}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Панель"
-                    value={navbarColor}
-                    onChange={setNavbarColor}
-                  />
-                </Grid>
-              </Grid>
-
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Прозрачность фона:
-                </Typography>
-                <Slider
-                  value={BackgroundOpacity}
-                  onChange={(_, newValue) =>
-                    setBackgroundOpacity(newValue as number)
-                  }
-                  step={0.01}
-                  min={0}
-                  max={1}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-                  disabled={loading}
-                />
-              </Box>
-
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Прозрачность панели:
-                </Typography>
-                <Slider
-                  value={navbarOpacity}
-                  onChange={(_, newValue) =>
-                    setNavbarOpacity(newValue as number)
-                  }
-                  step={0.01}
-                  min={0}
-                  max={1}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-                  disabled={loading}
-                />
-              </Box>
-
-              <Box sx={{ mt: 3 }}>
-                <ImageUploader
-                  label="Фоновая картинка"
-                  imageUrl={backgroundImage}
-                  onFileChange={(e) => handleFileChange(e, setBackgroundFile)}
-                  onDelete={deleteImage}
-                  imageType="background"
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%" }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Шаг 3: Настройки карточки товара
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Цвет текста"
-                    value={cardTextColor}
-                    onChange={setCardTextColor}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Цвет рамки"
-                    value={cardBorderColor}
-                    onChange={setCardBorderColor}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <ColorPicker
-                    label="Цвет фона"
-                    value={cardBackgroundColor}
-                    onChange={setCardBackgroundColor}
-                  />
-                </Grid>
-              </Grid>
-
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Прозрачность фона:
-                </Typography>
-                <Slider
-                  value={cardBackgroundOpacity}
-                  onChange={(_, newValue) =>
-                    setCardBackgroundOpacity(newValue as number)
-                  }
-                  step={0.01}
-                  min={0}
-                  max={1}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-                  disabled={loading}
-                />
-              </Box>
-
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Размытие фона (px):
-                </Typography>
-                <Slider
-                  value={cardBlur}
-                  onChange={(_, newValue) => setCardBlur(newValue as number)}
-                  step={1}
-                  min={0}
-                  max={20}
-                  valueLabelDisplay="auto"
-                  disabled={loading}
-                />
-              </Box>
-
-              <Box sx={{ mt: 3 }}>
-                <ImageUploader
-                  label="Заглушка фото"
-                  imageUrl={placeholderImage}
-                  onFileChange={(e) =>
-                    handleFileChange(e, setPlaceholderImageFile)
-                  }
-                  onDelete={deleteImage}
-                  imageType="placeholder"
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Container>
+      ))}
+    </Grid>
+  </Container>
   );
 };
 

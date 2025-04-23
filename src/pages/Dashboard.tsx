@@ -18,12 +18,12 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Админ-панель
+        Товары
       </Typography>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <DashboardCard title="Основная навигация">
+          <DashboardCard title="Основные страницы">
             <Button
               variant="contained"
               color="primary"
@@ -34,7 +34,7 @@ const Dashboard = () => {
           </DashboardCard>
         </Grid>
         <Grid item xs={12} md={4}>
-          <DashboardCard title="Категории навигации">
+          <DashboardCard title="Категории товаров">
             <Button
               variant="contained"
               color="primary"

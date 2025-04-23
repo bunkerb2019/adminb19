@@ -8,6 +8,7 @@ interface OrderListProps {
   selectedIds: string[];
   onSelect: (id: string) => void;
   onImageClick?: (imagePath: string) => Promise<void>;
+  isMobile: boolean;
 }
 
 const OrderList: React.FC<OrderListProps> = ({ 

@@ -32,6 +32,7 @@ interface EditItemPopupProps {
   item?: Order;
   onSave: (updatedItem: Order | null) => void;
   categories: string[];
+  isMobile: boolean;
 }
 
 const EditItemPopup: React.FC<EditItemPopupProps> = ({
