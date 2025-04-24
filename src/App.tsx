@@ -10,6 +10,7 @@ import { LanguageProvider } from "../src/contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./providers/AuthProvider";
 import Sidebar from "./components/Sidebar";
 import WelcomeScreen from "./components/WelcomeScreen";
+import {AppViewsProvider} from "./contexts/AppViewsContext.tsx";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient();
@@ -79,10 +80,12 @@ const App = () => {
     <Router>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <LanguageProvider>
-            <AppContent />
-            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-          </LanguageProvider>
+          <AppViewsProvider>
+            <LanguageProvider>
+              <AppContent />
+              {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+            </LanguageProvider>
+          </AppViewsProvider>
         </AuthProvider>
       </QueryClientProvider>
     </Router>
