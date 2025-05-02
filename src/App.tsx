@@ -27,10 +27,10 @@ function AppContent() {
 
   const theme = createTheme({
     palette: {
-      mode: darkMode ? "dark" : "light", // Используем темную по умолчанию
+      mode: darkMode ? "light" : "dark", // Используем темную по умолчанию
     },
     typography: {
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'Poppins, sans-serif',
     },
   });
 

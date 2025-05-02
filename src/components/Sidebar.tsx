@@ -32,12 +32,13 @@ const Sidebar = ({ open }: { open: boolean }) => {
     <Drawer
       variant="permanent"
       sx={{
-        width: open ? 240 : 80,
+        width: open ? 200 : 80,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: open ? 240 : 80,
+          width: open ? 200 : 80,
           boxSizing: "border-box",
-          backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#f4f4f4",
+          backgroundColor:
+            theme.palette.mode === "dark" ? "#111111" : "#ffffff",
           borderRight: "none",
           transition: "width 0.3s ease",
           overflowX: "hidden",
@@ -60,7 +61,10 @@ const Sidebar = ({ open }: { open: boolean }) => {
             width: open ? 70 : 40,
             height: open ? 70 : 40,
             transition: "all 0.3s ease",
-            boxShadow: theme.palette.mode === "dark" ? "0 0 10px #000" : "0 0 10px rgba(0,0,0,0.1)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 0 10px #000"
+                : "0 0 10px rgba(0,0,0,0.1)",
           }}
         />
         {open && (
@@ -93,26 +97,30 @@ const Sidebar = ({ open }: { open: boolean }) => {
               key={item.text}
               onClick={() => navigate(item.path)}
               sx={{
-                margin: "8px",
-                borderRadius: "12px",
-                paddingY: "10px",
+                margin: "10px",
+                borderRadius: "15px",
                 backgroundColor: isActive
                   ? theme.palette.mode === "dark"
-                    ? "#333"
-                    : "#e0e0e0"
+                    ? "rgba(2, 67, 170, 0.2)"
+                    : "rgba(2, 67, 170, 0.1)"
                   : "transparent",
+                borderLeft: isActive
+                  ? `4px solid ${theme.palette.primary.main}`
+                  : "4px solid transparent",
                 color: isActive
                   ? theme.palette.primary.main
                   : theme.palette.text.primary,
                 transition: "all 0.3s ease",
                 "&:hover": {
                   backgroundColor:
-                    theme.palette.mode === "dark" ? "#2a2a2a" : "#eaeaea",
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.05)",
                   transform: "scale(1.03)",
                   boxShadow:
                     theme.palette.mode === "dark"
-                      ? "0 4px 8px rgba(0,0,0,0.4)"
-                      : "0 4px 8px rgba(0,0,0,0.08)",
+                      ? "0 4px 12px rgba(0,0,0,0.3)"
+                      : "0 4px 12px rgba(0,0,0,0.1)",
                 },
               }}
             >

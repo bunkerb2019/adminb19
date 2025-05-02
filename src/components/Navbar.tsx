@@ -40,8 +40,8 @@ const Navbar = ({
         position="static"
         elevation={2}
         sx={{
-          backgroundColor: darkMode ? "#121212" : "#ffffff",
-          color: darkMode ? "#ffffff" : "#000000",
+          backgroundColor: darkMode ?"#ffffff" : "#121212",
+          color: darkMode ? "#000000" : "#ffffff",
           transition: "all 0.3s ease",
         }}
       >
@@ -114,12 +114,12 @@ const Navbar = ({
                     textTransform: "none",
                     borderRadius: "20px",
                     padding: "6px 16px",
-                    borderColor: darkMode ? "#fff" : "#000",
-                    color: darkMode ? "#fff" : "#000",
+                    borderColor: darkMode ? "#000" : "#fff",
+                    color: darkMode ?"#000" : "#fff",
                     transition: "all 0.3s ease",
                     "&:hover": {
-                      backgroundColor: darkMode ? "#fff" : "#000",
-                      color: darkMode ? "#000" : "#fff",
+                      backgroundColor: darkMode ? "#000" : "#fff",
+                      color: darkMode ? "#fff" : "#000",
                       borderColor: darkMode ? "#000" : "#fff",
                     },
                   }}

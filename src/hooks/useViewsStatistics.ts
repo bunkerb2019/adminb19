@@ -14,4 +14,4 @@ export const useViewsStatistics = () => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
-};
+}
