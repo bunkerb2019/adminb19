@@ -22,7 +22,7 @@ const WelcomeScreen = () => {
         elevation={6}
         sx={{
           p: 4,
-          maxWidth: 500,
+          maxWidth: 400,
           width: "100%",
           textAlign: "center",
           borderRadius: 4,

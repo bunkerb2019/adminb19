@@ -10,7 +10,7 @@ import { LanguageProvider } from "../src/contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./providers/AuthProvider";
 import Sidebar from "./components/Sidebar";
 import WelcomeScreen from "./components/WelcomeScreen";
-import {AppViewsProvider} from "./contexts/AppViewsContext.tsx";
+import { AppViewsProvider } from "./contexts/AppViewsContext.tsx";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient();
@@ -30,7 +30,7 @@ function AppContent() {
       mode: darkMode ? "light" : "dark", // Используем темную по умолчанию
     },
     typography: {
-      fontFamily: 'Poppins, sans-serif',
+      fontFamily: "Poppins, sans-serif",
     },
   });
 
@@ -54,7 +54,14 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", height: "100vh" }}>
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          backgroundColor: darkMode ? "#F9FAFB" : "#000", // <-- Здесь меняется фон
+          transition: "background-color 0.3s ease",
+        }}
+      >
         <Sidebar open={sidebarOpen} />
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Navbar
@@ -62,7 +69,16 @@ function AppContent() {
             darkMode={darkMode}
             toggleSidebar={toggleSidebar}
           />
-          <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              backgroundColor: darkMode ? "#F9FAFB" : "#000", // <-- фон основного контента
+              color: darkMode ? "#000" : "#fff", // чтобы текст был читаем
+              transition: "background-color 0.3s ease, color 0.3s ease",
+            }}
+          >
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />

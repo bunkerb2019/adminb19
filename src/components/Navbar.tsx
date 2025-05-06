@@ -3,7 +3,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  Typography,
   Box,
   Avatar,
   Button,
@@ -38,9 +37,9 @@ const Navbar = ({
     <>
       <AppBar
         position="static"
-        elevation={2}
+        elevation={0}
         sx={{
-          backgroundColor: darkMode ?"#ffffff" : "#121212",
+          backgroundColor: darkMode ?"#F9FAFB" : "#000",
           color: darkMode ? "#000000" : "#ffffff",
           transition: "all 0.3s ease",
         }}
@@ -57,9 +56,6 @@ const Navbar = ({
               {sidebarOpen ? <CloseIcon /> : <MenuIcon />}{" "}
               {/* Меняем иконку на крестик при открытом меню */}
             </IconButton>
-            <Typography variant="h6" component="h1">
-              Панель управления
-            </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -69,7 +65,7 @@ const Navbar = ({
                 width: 50,
                 height: 28,
                 borderRadius: "50px",
-                backgroundColor: darkMode ? "#444" : "#e0e0e0",
+                backgroundColor: darkMode ? "#e0e0e0" : "#444",
                 display: "flex",
                 alignItems: "center",
                 padding: "3px",
@@ -85,12 +81,12 @@ const Navbar = ({
                   width: 25,
                   height: 25,
                   borderRadius: "50%",
-                  backgroundColor: darkMode ? "#fff" : "#000",
+                  backgroundColor: darkMode ? "#444" : "#000",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   transition: "all 0.3s ease",
-                  color: darkMode ? "#000" : "#fff",
+                  color: darkMode ? "#fff" : "#fff",
                 }}
               >
                 {darkMode ? (
