@@ -40,7 +40,7 @@ const Navbar = ({
         elevation={0}
         sx={{
           backgroundColor: darkMode ?"#F9FAFB" : "#000",
-          color: darkMode ? "#000000" : "#ffffff",
+          color: darkMode ? "#000" : "#fff",
           transition: "all 0.3s ease",
         }}
       >

@@ -10,16 +10,16 @@ import {
   Divider,
   useTheme,
 } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import SettingsIcon from "@mui/icons-material/Settings";
-import HomeIcon from "@mui/icons-material/Home";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 
 const menuItems = [
-  { text: "Главная", icon: <HomeIcon />, path: "/" },
-  { text: "Товары", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Настройки", icon: <SettingsIcon />, path: "/settings" },
+  { text: "Главная", icon: <HomeOutlinedIcon />, path: "/", color: "#4CAF50" },
+  { text: "Товары", icon: <DashboardOutlinedIcon />, path: "/dashboard", color: "#FFC107" },
+  { text: "Настройки", icon: <SettingsOutlinedIcon />, path: "/settings", color: "#2196F3" },
 ];
 
 const Sidebar = ({ open }: { open: boolean }) => {
@@ -32,13 +32,13 @@ const Sidebar = ({ open }: { open: boolean }) => {
     <Drawer
       variant="permanent"
       sx={{
-        width: open ? 200 : 80,
+        width: open ? 220 : 80,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: open ? 200 : 80,
+          width: open ? 220 : 80,
           boxSizing: "border-box",
           backgroundColor:
-            theme.palette.mode === "dark" ? "#111111" : "#ffffff",
+            theme.palette.mode === "dark" ? "#0F1115" : "#F9FAFB",
           borderRight: "none",
           transition: "width 0.3s ease",
           overflowX: "hidden",
@@ -47,7 +47,8 @@ const Sidebar = ({ open }: { open: boolean }) => {
     >
       <Box
         sx={{
-          p: open ? 3 : 2,
+          py: 3,
+          px: open ? 2 : 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -58,27 +59,38 @@ const Sidebar = ({ open }: { open: boolean }) => {
         <Avatar
           src={user?.photoURL || ""}
           sx={{
-            width: open ? 70 : 40,
-            height: open ? 70 : 40,
+            width: open ? 64 : 40,
+            height: open ? 64 : 40,
             transition: "all 0.3s ease",
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "0 0 10px #000"
-                : "0 0 10px rgba(0,0,0,0.1)",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
           }}
         />
         {open && (
           <>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, textAlign: "center" }}
+              sx={{
+                fontWeight: 600,
+                textAlign: "center",
+                mt: 1,
+                maxWidth: 160,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
             >
-              {user?.displayName}
+              {user?.displayName || "Пользователь"}
             </Typography>
             <Typography
               variant="caption"
-              color="text.secondary"
-              sx={{ textAlign: "center", wordBreak: "break-word" }}
+              sx={{
+                color: theme.palette.text.secondary,
+                textAlign: "center",
+                maxWidth: 160,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
             >
               {user?.email}
             </Typography>
@@ -97,30 +109,36 @@ const Sidebar = ({ open }: { open: boolean }) => {
               key={item.text}
               onClick={() => navigate(item.path)}
               sx={{
-                margin: "10px",
-                borderRadius: "15px",
-                backgroundColor: isActive
-                  ? theme.palette.mode === "dark"
-                    ? "rgba(2, 67, 170, 0.2)"
-                    : "rgba(2, 67, 170, 0.1)"
-                  : "transparent",
-                borderLeft: isActive
-                  ? `4px solid ${theme.palette.primary.main}`
-                  : "4px solid transparent",
-                color: isActive
-                  ? theme.palette.primary.main
-                  : theme.palette.text.primary,
+                position: "relative",
+                margin: "8px 12px",
+                borderRadius: "20px",
+                color: isActive ? theme.palette.common.white : theme.palette.text.primary,
+                overflow: "hidden",
                 transition: "all 0.3s ease",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: isActive
+                    ? item.color
+                    : "transparent",
+                  transform: isActive ? "scaleX(1)" : "scaleX(0)",
+                  transformOrigin: "top right",
+                  transition: "transform 0.3s ease, background-color 0.3s ease",
+                  zIndex: -1,
+                },
+                "&:hover::before": {
+                  transform: "scaleX(1)",
+                  transformOrigin: "top left",
+                  background: item.color,
+                },
                 "&:hover": {
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? "rgba(255,255,255,0.05)"
-                      : "rgba(0,0,0,0.05)",
-                  transform: "scale(1.03)",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 4px 12px rgba(0,0,0,0.3)"
-                      : "0 4px 12px rgba(0,0,0,0.1)",
+                  boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
+                  transform: "translateX(2px)",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
                 },
               }}
             >
@@ -130,11 +148,20 @@ const Sidebar = ({ open }: { open: boolean }) => {
                   mr: open ? 2 : "auto",
                   justifyContent: "center",
                   color: "inherit",
+                  transition: "all 0.3s ease",
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              {open && <ListItemText primary={item.text} />}
+              {open && (
+                <ListItemText
+                  primary={item.text}
+                  sx={{
+                    fontWeight: isActive ? 600 : 400,
+                    transition: "font-weight 0.3s ease",
+                  }}
+                />
+              )}
             </ListItemButton>
           );
         })}
