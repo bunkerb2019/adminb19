@@ -148,7 +148,7 @@ const Orders = () => {
   const [imagePopupOpen, setImagePopupOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  
+
   // Добавлен только этот хук для определения мобильных устройств
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -289,7 +289,14 @@ const Orders = () => {
         },
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1,
+        }}
+      >
         <Typography variant="h6" component="h2">
           {getText({ ru: "Фильтры", en: "Filters", ro: "Filtre" })}
         </Typography>
@@ -329,7 +336,9 @@ const Orders = () => {
                 en: "Sort by",
                 ro: "Sortează după",
               })}
-              startAdornment={<SortIcon sx={{ mr: 1, color: "action.active" }} />}
+              startAdornment={
+                <SortIcon sx={{ mr: 1, color: "action.active" }} />
+              }
             >
               <MenuItem value="">
                 {getText({
@@ -382,7 +391,9 @@ const Orders = () => {
                 en: "Category",
                 ro: "Categorie",
               })}
-              startAdornment={<CategoryIcon sx={{ mr: 1, color: "action.active" }} />}
+              startAdornment={
+                <CategoryIcon sx={{ mr: 1, color: "action.active" }} />
+              }
             >
               {dinamicCategory()}
             </Select>
@@ -636,7 +647,15 @@ const Orders = () => {
             overflowX: "auto",
           }}
         >
-          <Table sx={{ minWidth: isMobile ? 650 : "100%" }}>
+          <Table
+            sx={{
+              minWidth: isMobile ? 300 : "100%",
+              "& .MuiTableCell-root": {
+                padding: isMobile ? "8px 4px" : "16px",
+                fontSize: isMobile ? "0.75rem" : "0.875rem",
+              },
+            }}
+          >
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
@@ -863,7 +882,8 @@ const Orders = () => {
                 padding: "8px 16px",
                 maxWidth: isMobile ? "100%" : 200,
                 "&:hover": {
-                  background: "linear-gradient(45deg, #4caf50 20%, #66bb6a 80%)",
+                  background:
+                    "linear-gradient(45deg, #4caf50 20%, #66bb6a 80%)",
                 },
               }}
             >

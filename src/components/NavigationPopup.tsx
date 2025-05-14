@@ -150,10 +150,11 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 800,
+          width: "95%",
+          maxWidth: 800,
           bgcolor: "background.paper",
-          p: 2,
-          borderRadius: 1,
+          p: { xs: 2, sm: 3 },
+          borderRadius: 2,
           boxShadow: 24,
           maxHeight: "90vh",
           display: "flex",
@@ -165,21 +166,35 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1,
+            mb: 2,
           }}
         >
-          <Typography variant="subtitle1">Navigation Editor</Typography>
+          <Typography variant="h6">Navigation Editor</Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Box sx={{ flex: 1, overflowY: "auto", p: 1 }}>
+        <Box sx={{ flex: 1, overflowY: "auto", pr: 1 }}>
           {navigation.map((item) => (
-            <Paper key={item.id} elevation={1} sx={{ mb: 1.5, p: 1.5 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <Typography variant="body2">Nav {item.id}</Typography>
-                
+            <Paper
+              key={item.id}
+              elevation={2}
+              sx={{
+                mb: 2,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: "background.default",
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.5}
+                alignItems="center"
+                sx={{ mb: 1, flexWrap: "wrap" }}
+              >
+                <Typography variant="body2">Страница {item.id}</Typography>
+
                 <Button
                   component="label"
                   size="small"
@@ -198,11 +213,23 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
 
                 {item.icon && (
                   <>
-                    <img
-                      src={item.icon}
-                      alt="icon"
-                      style={{ width: 32, height: 32, borderRadius: 2 }}
-                    />
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 1,
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      }}
+                    >
+                      <img
+                        src={item.icon}
+                        alt="icon"
+                        style={{ width: 24, height: 24, objectFit: "contain" }}
+                      />
+                    </Box>
                     <IconButton
                       size="small"
                       onClick={() => handleDeleteIcon(item.id)}
@@ -214,7 +241,11 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
                 )}
               </Stack>
 
-              <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1.5}
+                sx={{ mb: 1 }}
+              >
                 {(["ru", "ro", "en"] as const).map((lang) => (
                   <Box key={lang} sx={{ flex: 1 }}>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -242,19 +273,26 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
                           variant="outlined"
                           sx={{
                             flex: 1,
-                            p: "8px 12px",
+                            p: "6px 10px",
                             minHeight: 32,
                             display: "flex",
                             alignItems: "center",
+                            justifyContent: "space-between",
                             cursor: "pointer",
-                            ...(validationErrors[item.id]?.[lang] && {
-                              borderColor: "error.main",
-                            }),
+                            transition: "0.2s",
+                            borderColor: validationErrors[item.id]?.[lang]
+                              ? "error.main"
+                              : "divider",
+                            "&:hover": {
+                              backgroundColor: "action.hover",
+                            },
                           }}
                           onClick={() => setEditField({ id: item.id, lang })}
                         >
                           <Typography variant="body2">
-                            {item[lang] || <span style={{ opacity: 0.5 }}>Click to edit</span>}
+                            {item[lang] || (
+                              <span style={{ opacity: 0.5 }}>Click to edit</span>
+                            )}
                           </Typography>
                         </Paper>
                       )}
@@ -275,10 +313,10 @@ const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
 
         <Button
           variant="contained"
-          size="small"
+          size="medium"
           onClick={handleSave}
           fullWidth
-          sx={{ mt: 1, height: 36 }}
+          sx={{ mt: 2, height: 44, fontWeight: 500 }}
         >
           Save
         </Button>

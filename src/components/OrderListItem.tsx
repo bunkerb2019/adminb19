@@ -24,6 +24,7 @@ type Props = {
   selected: boolean;
   onSelect: () => void;
   onImageClick?: (imagePath: string) => Promise<void>;
+  
 };
 
 const OrderListItem = ({ 

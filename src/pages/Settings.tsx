@@ -118,26 +118,45 @@ const ImageUploader = ({
 };
 
 const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
-  <TextField
-    type="color"
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    fullWidth
-    size="small"
-    label={label}
-    InputLabelProps={{ 
-      shrink: true,
-      sx: { fontSize: '0.75rem' }
-    }}
-    margin="dense"
-    sx={{ 
-      mb: 1,
-      '& .MuiInputBase-input': {
-        height: '36px',
-        padding: '0 0 0 8px'
-      }
-    }}
-  />
+  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+    <Typography variant="body2" sx={{ 
+      minWidth: '80px', 
+      fontSize: '0.75rem',
+      color: 'text.secondary'
+    }}>
+      {label}
+    </Typography>
+    <Box
+      component="input"
+      type="color"
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+      sx={{
+        width: '32px',
+        height: '32px',
+        padding: 0,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        '&::-webkit-color-swatch': {
+          border: 'none',
+          borderRadius: '3px',
+        },
+        '&::-moz-color-swatch': {
+          border: 'none',
+          borderRadius: '3px',
+        }
+      }}
+    />
+    <Typography variant="body2" sx={{ 
+      fontSize: '0.75rem',
+      color: 'text.secondary',
+      ml: 0.5
+    }}>
+      {value}
+    </Typography>
+  </Box>
 );
 
 interface SettingsData {
@@ -647,7 +666,7 @@ const Settings = () => {
                     />
 
                     <ColorPicker
-                      label="Цвет фона приветствия"
+                      label="Фон приветствия"
                       value={welcomeBackground}
                       onChange={setWelcomeBackground}
                     />
@@ -674,38 +693,30 @@ const Settings = () => {
                     <Divider sx={{ mb: 1.5 }} />
 
                     <ImageUploader
-                      label="Логотип (центр экрана)"
+                      label="Логотип (центр)"
                       imageUrl={uiLogo}
                       onFileChange={(e) => handleFileChange(e, setUiLogoFile)}
                       onDelete={deleteImage}
                       imageType="uiLogo"
                     />
 
-                    <Typography variant="body2" gutterBottom sx={{ 
-                      fontWeight: 500,
+                    <Typography variant="body2" sx={{ 
                       mt: 2,
-                      mb: 1
+                      mb: 1,
+                      fontSize: '0.75rem',
+                      color: 'text.secondary',
+                      fontWeight: 500
                     }}>
-                      Цвета:
+                      Цвета интерфейса:
                     </Typography>
 
-                    <Grid container spacing={1}>
-                      <Grid item xs={12} sm={6}>
-                        <ColorPicker label="Фон" value={backgroundColor} onChange={setBackgroundColor} />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <ColorPicker label="Текст" value={textColor} onChange={setTextColor} />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <ColorPicker label="Активная навигация" value={navbarTextColor} onChange={setNavbarTextColor} />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <ColorPicker label="Панель" value={navbarColor} onChange={setNavbarColor} />
-                      </Grid>
-                    </Grid>
+                    <ColorPicker label="Фон" value={backgroundColor} onChange={setBackgroundColor} />
+                    <ColorPicker label="Текст" value={textColor} onChange={setTextColor} />
+                    <ColorPicker label="Активный" value={navbarTextColor} onChange={setNavbarTextColor} />
+                    <ColorPicker label="Панель" value={navbarColor} onChange={setNavbarColor} />
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" gutterBottom sx={{ 
+                      <Typography variant="body2" sx={{ 
                         fontSize: '0.75rem',
                         color: 'text.secondary'
                       }}>
@@ -723,7 +734,7 @@ const Settings = () => {
                     </Box>
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" gutterBottom sx={{ 
+                      <Typography variant="body2" sx={{ 
                         fontSize: '0.75rem',
                         color: 'text.secondary'
                       }}>
@@ -763,20 +774,12 @@ const Settings = () => {
                     </Typography>
                     <Divider sx={{ mb: 1.5 }} />
 
-                    <Grid container spacing={1}>
-                      <Grid item xs={12} sm={4}>
-                        <ColorPicker label="Цвет текста" value={cardTextColor} onChange={setCardTextColor} />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <ColorPicker label="Цвет рамки" value={cardBorderColor} onChange={setCardBorderColor} />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <ColorPicker label="Цвет фона" value={cardBackgroundColor} onChange={setCardBackgroundColor} />
-                      </Grid>
-                    </Grid>
+                    <ColorPicker label="Текст" value={cardTextColor} onChange={setCardTextColor} />
+                    <ColorPicker label="Рамка" value={cardBorderColor} onChange={setCardBorderColor} />
+                    <ColorPicker label="Фон" value={cardBackgroundColor} onChange={setCardBackgroundColor} />
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" gutterBottom sx={{ 
+                      <Typography variant="body2" sx={{ 
                         fontSize: '0.75rem',
                         color: 'text.secondary'
                       }}>
@@ -794,7 +797,7 @@ const Settings = () => {
                     </Box>
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" gutterBottom sx={{ 
+                      <Typography variant="body2" sx={{ 
                         fontSize: '0.75rem',
                         color: 'text.secondary'
                       }}>

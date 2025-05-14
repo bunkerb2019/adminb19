@@ -1,5 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { CssBaseline, ThemeProvider, createTheme, Box } from "@mui/material";
+import {
+  CssBaseline,
+  ThemeProvider,
+  createTheme,
+  Box,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -17,17 +24,18 @@ export const queryClient = new QueryClient();
 
 function AppContent() {
   const { isAdmin, isLoading } = useAuth();
-  const [darkMode, setDarkMode] = useState(true); // Устанавливаем начальную тему на темную
-
+  const [darkMode, setDarkMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("md"));
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const theme = createTheme({
+  const customTheme = createTheme({
     palette: {
-      mode: darkMode ? "light" : "dark", // Используем темную по умолчанию
+      mode: darkMode ? "light" : "dark",
     },
     typography: {
       fontFamily: "Poppins, sans-serif",
@@ -52,18 +60,29 @@ function AppContent() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={customTheme}>
       <CssBaseline />
-      <Box
-        sx={{
-          display: "flex",
-          height: "100vh",
-          backgroundColor: darkMode ? "#F9FAFB" : "#000", // <-- Здесь меняется фон
-          transition: "background-color 0.3s ease",
-        }}
-      >
-        <Sidebar open={sidebarOpen} />
-        <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+      <Box sx={{ display: "flex", height: "100vh" }}>
+        <Navbar
+          toggleTheme={() => setDarkMode(!darkMode)}
+          darkMode={darkMode}
+          toggleSidebar={toggleSidebar}
+        />
+
+        {/* Sidebar - всегда виден на desktop, скрыт на mobile */}
+        <Sidebar open={!isMobile || sidebarOpen} onClose={toggleSidebar} />
+
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+            width: isMobile
+              ? "100%"
+              : `calc(100% - ${sidebarOpen ? 220 : 80}px)`,
+            transition: "width 0.3s ease",
+          }}
+        >
           <Navbar
             toggleTheme={() => setDarkMode(!darkMode)}
             darkMode={darkMode}
@@ -74,9 +93,13 @@ function AppContent() {
             sx={{
               flexGrow: 1,
               p: 3,
-              backgroundColor: darkMode ? "#F9FAFB" : "#000", // <-- фон основного контента
-              color: darkMode ? "#000" : "#fff", // чтобы текст был читаем
-              transition: "background-color 0.3s ease, color 0.3s ease",
+              pt: "64px", // Отступ под navbar
+              transition: (theme) =>
+                theme.transitions.create("margin", {
+                  easing: theme.transitions.easing.sharp,
+                  duration: theme.transitions.duration.leavingScreen,
+                }),
+              marginLeft: isMobile ? 0 : sidebarOpen ? "220px" : "80px",
             }}
           >
             <Routes>

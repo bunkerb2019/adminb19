@@ -20,6 +20,8 @@ import {
   Paper,
   Tabs,
   Tab,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
@@ -38,6 +40,8 @@ interface RandomPopupProps {
 }
 
 const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: currentSettings } = useRandomSettings();
@@ -258,10 +262,10 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "90%",
-          maxWidth: 1200,
+          width: "95%",
+          maxWidth: isMobile ? "100%" : 800, // Уменьшил максимальную ширину
           bgcolor: "background.paper",
-          p: 3,
+          p: isMobile ? 1 : 2,
           borderRadius: 2,
           boxShadow: 24,
           maxHeight: "90vh",
@@ -273,17 +277,18 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 2,
+            mb: 1,
           }}
         >
-          <Typography variant="h5">Управление рандомайзерами</Typography>
-          <IconButton onClick={onClose}>
-            <CloseIcon />
+          <Typography variant="h6">Управление рандомайзерами</Typography>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
+        {/* Настройки страницы - теперь в одну колонку */}
+        <Paper elevation={1} sx={{ p: 1, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Настройки страницы
           </Typography>
 
@@ -291,6 +296,8 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
             value={languageTab}
             onChange={(_, newValue) => setLanguageTab(newValue)}
             sx={{ mb: 1 }}
+            variant="scrollable"
+            scrollButtons="auto"
           >
             <Tab label="RU" value="ru" />
             <Tab label="RO" value="ro" />
@@ -300,9 +307,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           <TextField
             fullWidth
             size="small"
-            label={`Заголовок страницы (${languageTab.toUpperCase()})${
-              languageTab === "ru" ? "*" : ""
-            }`}
+            label={`Заголовок (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
             value={settings.pageTitle[languageTab]}
             onChange={(e) => handlePageTitleChange(languageTab, e.target.value)}
             sx={{ mb: 1 }}
@@ -312,27 +317,30 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           <TextField
             fullWidth
             size="small"
-            label={`Описание страницы (${languageTab.toUpperCase()})`}
+            label={`Описание (${languageTab.toUpperCase()})`}
             value={settings.pageDescription[languageTab]}
             onChange={(e) =>
               handlePageDescriptionChange(languageTab, e.target.value)
             }
             multiline
-            rows={2}
+            rows={1}
           />
         </Paper>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={7}>
-            <Paper elevation={3} sx={{ p: 3, height: "100%" }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                {editingId ? "Редактировать рандомайзер" : "Добавить новый рандомайзер"}
+        <Grid container spacing={1}>
+          {/* Форма добавления/редактирования */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={1} sx={{ p: 1, height: "100%" }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                {editingId ? "Редактировать" : "Новый рандомайзер"}
               </Typography>
 
               <Tabs
                 value={languageTab}
                 onChange={(_, newValue) => setLanguageTab(newValue)}
-                sx={{ mb: 2 }}
+                sx={{ mb: 1 }}
+                variant="scrollable"
+                scrollButtons="auto"
               >
                 <Tab label="RU" value="ru" />
                 <Tab label="RO" value="ro" />
@@ -341,41 +349,63 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
 
               <TextField
                 fullWidth
-                label={`Название рандомайзера (${languageTab.toUpperCase()})${
-                  languageTab === "ru" ? "*" : ""
-                }`}
+                size="small"
+                label={`Название (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
                 value={newRandomizer.slotTitle[languageTab]}
                 onChange={(e) =>
                   handleSlotTitleChange(languageTab, e.target.value)
                 }
                 error={!!errors.name && languageTab === "ru"}
                 helperText={languageTab === "ru" ? errors.name : ""}
-                sx={{ mb: 2 }}
+                sx={{ mb: 1 }}
               />
 
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Навигация</InputLabel>
-                <Select
-                  value={newRandomizer.navigation}
-                  label="Навигация"
-                  onChange={(e) =>
-                    setNewRandomizer({
-                      ...newRandomizer,
-                      navigation: e.target.value as string,
-                      categoryIds: [],
-                    })
-                  }
-                >
-                  <MenuItem value="1">Навигация 1</MenuItem>
-                  <MenuItem value="2">Навигация 2</MenuItem>
-                  <MenuItem value="3">Навигация 3</MenuItem>
-                </Select>
-              </FormControl>
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+                    <InputLabel>Навигация</InputLabel>
+                    <Select
+                      value={newRandomizer.navigation}
+                      label="Навигация"
+                      onChange={(e) =>
+                        setNewRandomizer({
+                          ...newRandomizer,
+                          navigation: e.target.value as string,
+                          categoryIds: [],
+                        })
+                      }
+                    >
+                      <MenuItem value="1">Страница 1</MenuItem>
+                      <MenuItem value="2">Страница 2</MenuItem>
+                      <MenuItem value="3">Страница 3</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={newRandomizer.active}
+                        onChange={(e) =>
+                          setNewRandomizer({
+                            ...newRandomizer,
+                            active: e.target.checked,
+                          })
+                        }
+                      />
+                    }
+                    label="Активен"
+                    sx={{ mt: 1 }}
+                  />
+                </Grid>
+              </Grid>
 
-              <FormControl fullWidth error={!!errors.categories}>
+              <FormControl fullWidth size="small" error={!!errors.categories}>
                 <InputLabel>Категории*</InputLabel>
                 <Select
                   multiple
+                  size="small"
                   value={newRandomizer.categoryIds}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -387,7 +417,7 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                   }}
                   renderValue={(selected) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((id: Key | null | undefined) => {
+                      {selected.slice(0, 3).map((id: Key | null | undefined) => {
                         const category = categories.find((c) => c.id === id);
                         return (
                           <Chip
@@ -397,12 +427,16 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                           />
                         );
                       })}
+                      {selected.length > 3 && (
+                        <Chip label={`+${selected.length - 3}`} size="small" />
+                      )}
                     </Box>
                   )}
                 >
                   {filteredCategories.map((category: Category) => (
                     <MenuItem key={category.id} value={category.id}>
                       <Checkbox
+                        size="small"
                         checked={newRandomizer.categoryIds.includes(
                           category.id
                         )}
@@ -416,109 +450,80 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                 )}
               </FormControl>
 
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={newRandomizer.active}
-                    onChange={(e) =>
-                      setNewRandomizer({
-                        ...newRandomizer,
-                        active: e.target.checked,
-                      })
-                    }
-                  />
-                }
-                label="Активен"
-                sx={{ mb: 2 }}
-              />
-
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={editingId ? <EditIcon /> : <AddIcon />}
-                onClick={editingId ? handleUpdateRandomizer : handleAddRandomizer}
-                disabled={
-                  !newRandomizer.slotTitle.ru ||
-                  newRandomizer.categoryIds.length === 0
-                }
-              >
-                {editingId ? "Обновить" : "Добавить"}
-              </Button>
-
-              {editingId && (
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <Button
                   fullWidth
-                  variant="outlined"
-                  sx={{ mt: 1 }}
-                  onClick={() => {
-                    setEditingId(null);
-                    setNewRandomizer({
-                      slotTitle: { ru: "", ro: "", en: "" },
-                      navigation: "1",
-                      categoryIds: [],
-                      active: true,
-                    });
-                  }}
+                  variant="contained"
+                  size="small"
+                  startIcon={editingId ? <EditIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+                  onClick={editingId ? handleUpdateRandomizer : handleAddRandomizer}
+                  disabled={
+                    !newRandomizer.slotTitle.ru ||
+                    newRandomizer.categoryIds.length === 0
+                  }
                 >
-                  Отменить редактирование
+                  {editingId ? "Обновить" : "Добавить"}
                 </Button>
-              )}
+
+                {editingId && (
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setEditingId(null);
+                      setNewRandomizer({
+                        slotTitle: { ru: "", ro: "", en: "" },
+                        navigation: "1",
+                        categoryIds: [],
+                        active: true,
+                      });
+                    }}
+                  >
+                    Отмена
+                  </Button>
+                )}
+              </Box>
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={5}>
-            <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Список рандомайзеров ({settings.randomizers.length})
+          {/* Список рандомайзеров */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={1} sx={{ p: 1, height: "100%" }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Рандомайзеры ({settings.randomizers.length})
               </Typography>
 
               {settings.randomizers.length === 0 ? (
                 <Typography
                   color="text.secondary"
-                  sx={{ textAlign: "center", py: 4 }}
+                  sx={{ textAlign: "center", py: 2 }}
+                  variant="body2"
                 >
-                  Нет добавленных рандомайзеров
+                  Нет добавленных
                 </Typography>
               ) : (
-                <Box sx={{ maxHeight: 500, overflowY: "auto" }}>
+                <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
                   {settings.randomizers.map((randomizer) => (
                     <Paper
                       key={randomizer.id}
                       sx={{
-                        p: 2,
-                        mb: 2,
-                        borderLeft: 4,
+                        p: 1,
+                        mb: 1,
+                        borderLeft: 2,
                         borderColor: randomizer.active
                           ? "primary.main"
                           : "grey.500",
                       }}
                     >
-                      <Box display="flex" justifyContent="space-between">
-                        <Box>
-                          <Typography fontWeight="bold">
+                      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                        <Box sx={{ overflow: 'hidden' }}>
+                          <Typography fontWeight="bold" variant="body2">
                             {randomizer.slotTitle?.ru || "Без названия"}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {randomizer.slotTitle?.ro || ""}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {randomizer.slotTitle?.en || ""}
-                          </Typography>
-                          <Typography variant="body2" sx={{ mt: 1 }}>
-                            Навигация: {randomizer.navigation}
-                          </Typography>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexWrap: "wrap",
-                              gap: 0.5,
-                              mt: 1,
-                            }}
-                          >
-                            {randomizer.categoryIds.map((id) => {
-                              const category = categories.find(
-                                (c) => c.id === id
-                              );
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {randomizer.categoryIds.slice(0, 3).map((id) => {
+                              const category = categories.find((c) => c.id === id);
                               return (
                                 <Chip
                                   key={id}
@@ -528,43 +533,30 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
                                 />
                               );
                             })}
+                            {randomizer.categoryIds.length > 3 && (
+                              <Chip label={`+${randomizer.categoryIds.length - 3}`} size="small" />
+                            )}
                           </Box>
                         </Box>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="flex-end"
-                        >
-                          <Box>
+                        <Box display="flex" flexDirection="column" alignItems="flex-end">
+                          <Box display="flex">
                             <IconButton
                               size="small"
                               onClick={() => handleEditRandomizer(randomizer.id)}
-                              sx={{ mb: 1 }}
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                               size="small"
-                              onClick={() =>
-                                handleRemoveRandomizer(randomizer.id)
-                              }
-                              sx={{ mb: 1 }}
+                              onClick={() => handleRemoveRandomizer(randomizer.id)}
                             >
                               <CloseIcon fontSize="small" />
                             </IconButton>
                           </Box>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                size="small"
-                                checked={randomizer.active}
-                                onChange={() =>
-                                  handleToggleActive(randomizer.id)
-                                }
-                              />
-                            }
-                            label="Активен"
-                            labelPlacement="start"
+                          <Switch
+                            size="small"
+                            checked={randomizer.active}
+                            onChange={() => handleToggleActive(randomizer.id)}
                           />
                         </Box>
                       </Box>
@@ -576,13 +568,14 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
           </Grid>
         </Grid>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
           <Button
             variant="contained"
             color="primary"
+            size="small"
             onClick={handleSave}
             disabled={!isFormValid}
-            sx={{ minWidth: 120 }}
+            sx={{ minWidth: 100 }}
           >
             Сохранить
           </Button>

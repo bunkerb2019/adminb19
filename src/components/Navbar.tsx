@@ -6,6 +6,8 @@ import {
   Box,
   Avatar,
   Button,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,108 +28,119 @@ const Navbar = ({
 }) => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // Тоггл для открытия/закрытия боковой панели
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
-    toggleSidebar(); // Тогглим боковое меню
+    toggleSidebar();
   };
 
   return (
-    <>
-      <AppBar
-        position="static"
-        elevation={0}
-        sx={{
-          backgroundColor: darkMode ?"#F9FAFB" : "#000",
-          color: darkMode ? "#000" : "#fff",
-          transition: "all 0.3s ease",
-        }}
-      >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+    <AppBar
+  position="fixed"
+  elevation={0}
+  sx={{
+    backgroundColor: darkMode ? "rgba(255, 255, 255, 0)" : "rgba(25, 25, 25, 0)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    color: darkMode ? "#000" : "#fff",
+    zIndex: (theme) => theme.zIndex.drawer + 1,
+  }}
+>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {isMobile && ( // Показываем иконку меню только на мобильных
             <IconButton
               edge="start"
               color="inherit"
-              onClick={handleSidebarToggle} // Вызываем функцию для открытия/закрытия меню
+              onClick={handleSidebarToggle}
               aria-label="menu"
               sx={{ mr: 2 }}
             >
-              {sidebarOpen ? <CloseIcon /> : <MenuIcon />}{" "}
-              {/* Меняем иконку на крестик при открытом меню */}
+              {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
-          </Box>
+          )}
+        </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box
+            onClick={toggleTheme}
+            sx={{
+              width: 50,
+              height: 28,
+              borderRadius: "50px",
+              backgroundColor: darkMode ? "#e0e0e0" : "#444",
+              // boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
+              display: "flex",
+              alignItems: "center",
+              padding: "3px",
+              cursor: "pointer",
+              transition: "background-color 0.3s ease",
+              position: "relative",
+            }}
+          >
             <Box
-              onClick={toggleTheme}
               sx={{
-                width: 50,
-                height: 28,
-                borderRadius: "50px",
-                backgroundColor: darkMode ? "#e0e0e0" : "#444",
+                position: "absolute",
+                left: darkMode ? "3px" : "calc(100% - 25px - 3px)",
+                width: 25,
+                height: 25,
+                borderRadius: "50%",
+                backgroundColor: darkMode ? "#444" : "#000",
                 display: "flex",
                 alignItems: "center",
-                padding: "3px",
-                cursor: "pointer",
-                transition: "background-color 0.3s ease",
-                position: "relative",
+                justifyContent: "center",
+                transition: "all 0.3s ease",
+                color: darkMode ? "#fff" : "#fff",
               }}
             >
-              <Box
+              {darkMode ? (
+                <LightModeIcon fontSize="small" />
+              ) : (
+                <DarkModeIcon fontSize="small" />
+              )}
+            </Box>
+          </Box>
+
+          {user && (
+            <>
+              {user.photoURL && (
+                <Avatar 
+                  src={user.photoURL} 
+                  sx={{ 
+                    width: 36, 
+                    height: 36,
+                    display: { xs: 'none', sm: 'flex' } // Скрываем аватар на очень маленьких экранах
+                  }} 
+                />
+              )}
+              <Button
+                variant="outlined"
+                startIcon={<ExitToAppIcon />}
+                onClick={logout}
                 sx={{
-                  position: "absolute",
-                  left: darkMode ? "3px" : "calc(100% - 25px - 3px)",
-                  width: 25,
-                  height: 25,
-                  borderRadius: "50%",
-                  backgroundColor: darkMode ? "#444" : "#000",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  textTransform: "none",
+                  borderRadius: "20px",
+                  padding: "6px 16px",
+                  borderColor: darkMode ? "#000" : "#fff",
+                  color: darkMode ? "#000" : "#fff",
                   transition: "all 0.3s ease",
-                  color: darkMode ? "#fff" : "#fff",
+                  "&:hover": {
+                    backgroundColor: darkMode ? "#000" : "#fff",
+                    color: darkMode ? "#fff" : "#000",
+                    borderColor: darkMode ? "#000" : "#fff",
+                  },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' } // Адаптивный размер текста
                 }}
               >
-                {darkMode ? (
-                  <LightModeIcon fontSize="small" />
-                ) : (
-                  <DarkModeIcon fontSize="small" />
-                )}
-              </Box>
-            </Box>
-
-            {user && (
-              <>
-                {user.photoURL && (
-                  <Avatar src={user.photoURL} sx={{ width: 36, height: 36 }} />
-                )}
-                <Button
-                  variant="outlined"
-                  startIcon={<ExitToAppIcon />}
-                  onClick={logout}
-                  sx={{
-                    textTransform: "none",
-                    borderRadius: "20px",
-                    padding: "6px 16px",
-                    borderColor: darkMode ? "#000" : "#fff",
-                    color: darkMode ?"#000" : "#fff",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      backgroundColor: darkMode ? "#000" : "#fff",
-                      color: darkMode ? "#fff" : "#000",
-                      borderColor: darkMode ? "#000" : "#fff",
-                    },
-                  }}
-                >
-                  Выйти
-                </Button>
-              </>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
-    </>
+                Выйти
+              </Button>
+            </>
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

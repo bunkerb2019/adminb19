@@ -76,11 +76,14 @@ const Dashboard = () => {
 
       <Grid
         container
-        spacing={isMobile ? 0.5 : 2} // Уменьшаем отступы
+        spacing={isMobile ? 1 : 2}
         sx={{
           mt: 1,
           width: "100%",
-          marginLeft: isMobile ? "-4px" : 0, // Компенсируем отступы
+          marginLeft: "0 !important", // Убираем отрицательные отступы
+          "& .MuiGrid-item": {
+            paddingLeft: "0 !important", // Фиксим возможные проблемы с padding
+          },
         }}
       >
         {cards.map((item, index) => (

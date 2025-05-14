@@ -1,3 +1,4 @@
+// components/Sidebar.tsx
 import {
   Drawer,
   List,
@@ -9,6 +10,7 @@ import {
   Typography,
   Divider,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
@@ -18,62 +20,80 @@ import { useAuth } from "../providers/AuthProvider";
 
 const menuItems = [
   { text: "Главная", icon: <HomeOutlinedIcon />, path: "/", color: "#4CAF50" },
-  { text: "Товары", icon: <DashboardOutlinedIcon />, path: "/dashboard", color: "#FFC107" },
-  { text: "Настройки", icon: <SettingsOutlinedIcon />, path: "/settings", color: "#2196F3" },
+  {
+    text: "Товары",
+    icon: <DashboardOutlinedIcon />,
+    path: "/dashboard",
+    color: "#FFC107",
+  },
+  {
+    text: "Настройки",
+    icon: <SettingsOutlinedIcon />,
+    path: "/settings",
+    color: "#2196F3",
+  },
 ];
 
-const Sidebar = ({ open }: { open: boolean }) => {
+const Sidebar = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const theme = useTheme();
   const location = useLocation();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (isMobile) onClose();
+  };
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? "temporary" : "permanent"}
+      open={open}
+      onClose={onClose}
+      ModalProps={{ keepMounted: true }}
       sx={{
-        width: open ? 220 : 80,
+        width: isMobile ? "60vw" : open ? 100 : 72,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: open ? 220 : 80,
+          width: isMobile ? "60vw" : open ? 200 : 72,
           boxSizing: "border-box",
           backgroundColor:
-            theme.palette.mode === "dark" ? "#0F1115" : "#F9FAFB",
+            theme.palette.mode === "dark"
+              ? "rgba(0, 0, 0, 0)"
+              : "rgba(255, 255, 255, 0)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
           borderRight: "none",
-          transition: "width 0.3s ease",
-          overflowX: "hidden",
+          transition: theme.transitions.create("width", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+          position: "fixed",
+          top: isMobile ? 0 : "64px",
+          height: isMobile ? "100vh" : "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
         },
       }}
     >
-      <Box
-        sx={{
-          py: 3,
-          px: open ? 2 : 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 1,
-          transition: "all 0.3s ease",
-        }}
-      >
+      <Box sx={{ pt: isMobile ? 8 : 4, px: open || isMobile ? 2 : 1, textAlign: "center" }}>
         <Avatar
           src={user?.photoURL || ""}
           sx={{
-            width: open ? 64 : 40,
-            height: open ? 64 : 40,
-            transition: "all 0.3s ease",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+            width: open || isMobile ? 64 : 40,
+            height: open || isMobile ? 64 : 40,
+            margin: "0 auto",
+            transition: theme.transitions.create(["width", "height"]),
           }}
         />
-        {open && (
+        {(open || isMobile) && (
           <>
             <Typography
               variant="subtitle1"
               sx={{
-                fontWeight: 600,
-                textAlign: "center",
                 mt: 1,
-                maxWidth: 160,
+                fontWeight: 600,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -85,8 +105,6 @@ const Sidebar = ({ open }: { open: boolean }) => {
               variant="caption"
               sx={{
                 color: theme.palette.text.secondary,
-                textAlign: "center",
-                maxWidth: 160,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -98,74 +116,57 @@ const Sidebar = ({ open }: { open: boolean }) => {
         )}
       </Box>
 
-      <Divider sx={{ mx: 2, borderColor: theme.palette.divider }} />
+      <Divider sx={{ my: 2, mx: open ? 2 : 1, borderColor: "rgba(255,255,255,0.1)" }} />
 
-      <List sx={{ mt: 1 }}>
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-
-          return (
-            <ListItemButton
-              key={item.text}
-              onClick={() => navigate(item.path)}
-              sx={{
-                position: "relative",
-                margin: "8px 12px",
-                borderRadius: "20px",
-                color: isActive ? theme.palette.common.white : theme.palette.text.primary,
-                overflow: "hidden",
-                transition: "all 0.3s ease",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: isActive
-                    ? item.color
-                    : "transparent",
-                  transform: isActive ? "scaleX(1)" : "scaleX(0)",
-                  transformOrigin: "top right",
-                  transition: "transform 0.3s ease, background-color 0.3s ease",
-                  zIndex: -1,
-                },
-                "&:hover::before": {
-                  transform: "scaleX(1)",
-                  transformOrigin: "top left",
-                  background: item.color,
-                },
-                "&:hover": {
-                  boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
-                  transform: "translateX(2px)",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                },
-              }}
-            >
-              <ListItemIcon
+      <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <List>
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <ListItemButton
+                key={item.text}
+                onClick={() => handleNavigate(item.path)}
                 sx={{
-                  minWidth: 0,
-                  mr: open ? 2 : "auto",
-                  justifyContent: "center",
-                  color: "inherit",
+                  mx: 1,
+                  mb: 1,
+                  borderRadius: "20px",
+                  position: "relative",
+                  color: isActive
+                    ? theme.palette.common.white
+                    : theme.palette.text.primary,
+                  backgroundColor: isActive ? `${item.color}CC` : "transparent",
+                  overflow: "hidden",
                   transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: `${item.color}CC`,
+                    transform: "translateX(2px)",
+                  },
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              {open && (
-                <ListItemText
-                  primary={item.text}
+                <ListItemIcon
                   sx={{
-                    fontWeight: isActive ? 600 : 400,
-                    transition: "font-weight 0.3s ease",
+                    minWidth: 0,
+                    mr: open || isMobile ? 2 : "auto",
+                    justifyContent: "center",
+                    color: "inherit",
                   }}
-                />
-              )}
-            </ListItemButton>
-          );
-        })}
-      </List>
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {(open || isMobile) && (
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      opacity: 1,
+                      fontWeight: isActive ? 600 : 400,
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </Box>
     </Drawer>
   );
 };

@@ -48,7 +48,9 @@ interface CategoryPopupProps {
 }
 
 const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
-  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>({});
+  const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>(
+    {}
+  );
   const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: { [field: string]: string };
@@ -123,11 +125,15 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         await updateDoc(docRef, {
-          list: docSnap.data().list.map((item: Category) =>
-            item.id === category.id ? updatedCategory : item
-          ),
+          list: docSnap
+            .data()
+            .list.map((item: Category) =>
+              item.id === category.id ? updatedCategory : item
+            ),
         });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.categories(),
+        });
         setCategories([]);
       }
     } catch (error) {
@@ -193,16 +199,19 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 900,
+          width: "100%",
+          maxWidth: 900,
           bgcolor: "background.paper",
-          p: 1.5,
-          borderRadius: 1,
+          p: { xs: 1, sm: 2 },
+          borderRadius: 2,
           boxShadow: 24,
           maxHeight: "90vh",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -218,6 +227,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           </IconButton>
         </Box>
 
+        {/* Tabs */}
         <Tabs
           value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
@@ -234,11 +244,18 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           }}
         >
           {["1", "2", "3"].map((tab) => (
-            <Tab key={tab} label={`Nav ${tab}`} value={tab} />
+            <Tab key={tab} label={`Страница ${tab}`} value={tab} />
           ))}
         </Tabs>
 
-        <Box sx={{ flex: 1, overflowY: "auto", p: 0.5 }}>
+        {/* Category List */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            p: { xs: 0.5, sm: 1 },
+          }}
+        >
           {categories
             .filter((cat) => cat.parentId === activeTab)
             .map((item) => (
@@ -251,18 +268,24 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                   bgcolor: editMode[item.id] ? "action.hover" : undefined,
                 }}
               >
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ sm: "center" }}
+                >
                   {/* Icon Block */}
-                  <Box sx={{ width: 80 }}>
+                  <Box
+                    sx={{ width: { xs: "100%", sm: 40 }, textAlign: "center" , backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%'}}
+                  >
                     {item.icon ? (
-                      <Box position="relative">
+                      <Box position="relative" display="inline-block">
                         <img
                           src={item.icon}
                           alt="icon"
                           style={{
                             width: 32,
                             height: 32,
-                            borderRadius: 2,
+                            borderRadius: 4,
                           }}
                         />
                         {editMode[item.id] && (
@@ -293,7 +316,10 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                           type="file"
                           hidden
                           onChange={(e) =>
-                            handleIconUpload(item.id, e.target.files?.[0] || null)
+                            handleIconUpload(
+                              item.id,
+                              e.target.files?.[0] || null
+                            )
                           }
                         />
                       </Button>
@@ -301,7 +327,11 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                   </Box>
 
                   {/* Input Fields */}
-                  <Stack direction="row" spacing={0.5} sx={{ flexGrow: 1 }}>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={0.5}
+                    sx={{ flexGrow: 1 }}
+                  >
                     {["ru", "ro", "en"].map((lang) => (
                       <TextField
                         key={lang}
@@ -332,14 +362,19 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                   </Stack>
 
                   {/* Action Buttons */}
-                  <Stack direction="row" spacing={0.5}>
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    sx={{ mt: { xs: 1, sm: 0 } }}
+                  >
                     {editMode[item.id] ? (
                       <IconButton
                         size="small"
                         color="success"
                         onClick={() => handleSaveCategory(item)}
                         disabled={
-                          Object.keys(validationErrors[item.id] || {}).length > 0
+                          Object.keys(validationErrors[item.id] || {}).length >
+                          0
                         }
                         sx={{ height: 32, width: 32 }}
                       >
@@ -368,6 +403,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
             ))}
         </Box>
 
+        {/* Add Button */}
         <Button
           variant="contained"
           size="small"
