@@ -61,56 +61,53 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={customTheme}>
-      <CssBaseline />
-      <Box sx={{ display: "flex", height: "100vh" }}>
-        <Navbar
-          toggleTheme={() => setDarkMode(!darkMode)}
-          darkMode={darkMode}
-          toggleSidebar={toggleSidebar}
-        />
+  <CssBaseline />
+  <Box sx={{ display: "flex", height: "100vh" }}>
+    <Navbar
+      toggleTheme={() => setDarkMode(!darkMode)}
+      darkMode={darkMode}
+      toggleSidebar={toggleSidebar}
+      sidebarOpen={sidebarOpen} // <-- добавили это
+    />
 
-        {/* Sidebar - всегда виден на desktop, скрыт на mobile */}
-        <Sidebar open={!isMobile || sidebarOpen} onClose={toggleSidebar} />
+    <Sidebar open={!isMobile || sidebarOpen} onClose={toggleSidebar} />
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            width: isMobile
-              ? "100%"
-              : `calc(100% - ${sidebarOpen ? 220 : 80}px)`,
-            transition: "width 0.3s ease",
-          }}
-        >
-          <Navbar
-            toggleTheme={() => setDarkMode(!darkMode)}
-            darkMode={darkMode}
-            toggleSidebar={toggleSidebar}
-          />
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              p: 3,
-              pt: "64px", // Отступ под navbar
-              transition: (theme) =>
-                theme.transitions.create("margin", {
-                  easing: theme.transitions.easing.sharp,
-                  duration: theme.transitions.duration.leavingScreen,
-                }),
-              marginLeft: isMobile ? 0 : sidebarOpen ? "220px" : "80px",
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </Box>
-        </Box>
+    <Box
+      sx={{
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+        width: isMobile
+          ? "100%"
+          : `calc(100% - ${sidebarOpen ? 220 : 80}px)`,
+        transition: "width 0.3s ease",
+      }}
+    >
+      {/* Удалили повторный Navbar */}
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          pt: "64px",
+          transition: (theme) =>
+            theme.transitions.create("margin", {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+          marginLeft: isMobile ? 0 : sidebarOpen ? "220px" : "80px",
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
       </Box>
-    </ThemeProvider>
+    </Box>
+  </Box>
+</ThemeProvider>
   );
 }
 

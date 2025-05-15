@@ -275,7 +275,19 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
                 >
                   {/* Icon Block */}
                   <Box
-                    sx={{ width: { xs: "100%", sm: 40 }, textAlign: "center" , backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%'}}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      minWidth: 40,
+                      minHeight: 40,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
                   >
                     {item.icon ? (
                       <Box position="relative" display="inline-block">

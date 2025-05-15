@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import {
   AppBar,
   Toolbar,
@@ -21,18 +21,18 @@ const Navbar = ({
   toggleTheme,
   darkMode,
   toggleSidebar,
+  sidebarOpen,
 }: {
   toggleTheme: () => void;
   darkMode: boolean;
   toggleSidebar: () => void;
+  sidebarOpen: boolean;
 }) => {
   const { user } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
     toggleSidebar();
   };
 

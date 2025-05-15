@@ -627,187 +627,217 @@ const Orders = () => {
 
       {/* Контент - полностью сохранен, только добавлены условия isMobile */}
       {viewMode === "grid" ? (
-        <Grid container spacing={2}>
-          <OrderList
-            orders={paginatedOrders}
-            onEdit={handleEdit}
-            selectedIds={selectedIds}
-            onSelect={handleSelect}
-            onImageClick={handleImageClick}
-            isMobile={isMobile}
-          />
-        </Grid>
-      ) : (
-        <TableContainer
-          component={Paper}
-          sx={{
-            borderRadius: 2,
-            boxShadow: "none",
-            width: "100%",
-            overflowX: "auto",
-          }}
-        >
-          <Table
-            sx={{
-              minWidth: isMobile ? 300 : "100%",
-              "& .MuiTableCell-root": {
-                padding: isMobile ? "8px 4px" : "16px",
-                fontSize: isMobile ? "0.75rem" : "0.875rem",
-              },
-            }}
+  <Grid container spacing={2}>
+    <OrderList
+      orders={paginatedOrders}
+      onEdit={handleEdit}
+      selectedIds={selectedIds}
+      onSelect={handleSelect}
+      onImageClick={handleImageClick}
+      isMobile={isMobile}
+    />
+  </Grid>
+) : (
+  <TableContainer
+    component={Paper}
+    sx={{
+      borderRadius: 2,
+      boxShadow: "none",
+      width: "100%",
+      overflowX: "auto",
+    }}
+  >
+    <Table
+      sx={{
+        minWidth: isMobile ? 300 : "100%",
+        "& .MuiTableCell-root": {
+          padding: isMobile ? "8px 4px" : "16px",
+          fontSize: isMobile ? "0.75rem" : "0.875rem",
+        },
+      }}
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
+            <Checkbox
+              indeterminate={
+                selectedIds.length > 0 &&
+                selectedIds.length < paginatedOrders.length
+              }
+              checked={
+                paginatedOrders.length > 0 &&
+                selectedIds.length === paginatedOrders.length
+              }
+              onChange={handleSelectAll}
+              size={isMobile ? "small" : "medium"}
+            />
+          </TableCell>
+          {isMobile ? (
+            <>
+              <TableCell>
+                {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+              </TableCell>
+            </>
+          ) : (
+            <>
+              <TableCell>
+                {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Категория", en: "Category", ro: "Categorie" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Фото", en: "Photo", ro: "Fotografie" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}
+              </TableCell>
+              <TableCell>
+                {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+              </TableCell>
+            </>
+          )}
+          <TableCell>
+            {getText({ ru: "Действия", en: "Actions", ro: "Acțiuni" })}
+          </TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {paginatedOrders.map((order) => (
+          <TableRow
+            key={order.id}
+            selected={selectedIds.includes(order.id)}
+            hover
           >
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
-                  <Checkbox
-                    indeterminate={
-                      selectedIds.length > 0 &&
-                      selectedIds.length < paginatedOrders.length
-                    }
-                    checked={
-                      paginatedOrders.length > 0 &&
-                      selectedIds.length === paginatedOrders.length
-                    }
-                    onChange={handleSelectAll}
-                    size={isMobile ? "small" : "medium"}
-                  />
-                </TableCell>
-                {!isMobile && (
-                  <>
-                    <TableCell>
-                      {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
-                    </TableCell>
-                    <TableCell>
-                      {getText({
-                        ru: "Категория",
-                        en: "Category",
-                        ro: "Categorie",
-                      })}
-                    </TableCell>
-                  </>
-                )}
+            <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
+              <Checkbox
+                checked={selectedIds.includes(order.id)}
+                onChange={() => handleSelect(order.id)}
+                size={isMobile ? "small" : "medium"}
+              />
+            </TableCell>
+            
+            {isMobile ? (
+              <>
                 <TableCell>
-                  {getText({ ru: "Фото", en: "Photo", ro: "Fotografie" })}
-                </TableCell>
-                <TableCell>
-                  {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
-                </TableCell>
-                {!isMobile && (
-                  <TableCell>
-                    {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}
-                  </TableCell>
-                )}
-                <TableCell>
-                  {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
-                </TableCell>
-                <TableCell>
-                  {getText({ ru: "Действия", en: "Actions", ro: "Acțiuni" })}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedOrders.map((order) => (
-                <TableRow
-                  key={order.id}
-                  selected={selectedIds.includes(order.id)}
-                  hover
-                >
-                  <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
-                    <Checkbox
-                      checked={selectedIds.includes(order.id)}
-                      onChange={() => handleSelect(order.id)}
-                      size={isMobile ? "small" : "medium"}
-                    />
-                  </TableCell>
-                  {!isMobile && (
-                    <>
-                      <TableCell>{getText(order.name || "")}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={order.category}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                    </>
-                  )}
-                  <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {order.image && (
                       <IconButton
                         onClick={() => handleImageClick(order.image!)}
-                        size={isMobile ? "small" : "medium"}
+                        size="small"
                         sx={{
+                          p: 0,
                           "&:hover": {
                             color: theme.palette.primary.main,
-                            transform: "scale(1.1)",
                           },
                         }}
                       >
-                        <VisibilityIcon
-                          fontSize={isMobile ? "small" : "medium"}
-                        />
+                        <VisibilityIcon fontSize="small" />
                       </IconButton>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    {order.price || 0} {order.currency || "$"}
-                  </TableCell>
-                  {!isMobile && (
-                    <TableCell>
-                      {order.weight}{" "}
-                      {order.weightUnit === "g"
-                        ? "g"
-                        : order.weightUnit === "ml"
-                        ? "ml"
-                        : "kg"}
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <Switch
-                      checked={order.active !== false}
-                      onChange={(e) => {
-                        const menuDoc = doc(db, "menu", order.id);
-                        updateDoc(menuDoc, {
-                          active: e.target.checked,
-                        });
-                      }}
-                      color="primary"
-                      size={isMobile ? "small" : "medium"}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      size={isMobile ? "small" : "medium"}
-                      onClick={() => handleEdit(order)}
+                    <Typography variant="body2" noWrap sx={{ flex: 1 }}>
+                      {getText(order.name || "")}
+                    </Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {order.price || 0} {order.currency || "$"}
+                </TableCell>
+                <TableCell>
+                  <Switch
+                    checked={order.active !== false}
+                    onChange={(e) => {
+                      const menuDoc = doc(db, "menu", order.id);
+                      updateDoc(menuDoc, {
+                        active: e.target.checked,
+                      });
+                    }}
+                    color="primary"
+                    size="small"
+                  />
+                </TableCell>
+              </>
+            ) : (
+              <>
+                <TableCell>{getText(order.name || "")}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={order.category}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  {order.image && (
+                    <IconButton
+                      onClick={() => handleImageClick(order.image!)}
+                      size="small"
                       sx={{
-                        fontWeight: 500,
-                        borderRadius: 2,
-                        borderWidth: 2,
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
                         "&:hover": {
-                          borderWidth: 2,
-                          borderColor: theme.palette.primary.dark,
-                          background: "rgba(25, 118, 210, 0.04)",
+                          color: theme.palette.primary.main,
+                          transform: "scale(1.1)",
                         },
                       }}
-                      startIcon={
-                        <EditIcon fontSize={isMobile ? "small" : "medium"} />
-                      }
                     >
-                      {getText({
-                        ru: isMobile ? "Ред." : "Редактировать",
-                        en: isMobile ? "Edit" : "Edit",
-                        ro: isMobile ? "Edit" : "Editați",
-                      })}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {order.price || 0} {order.currency || "$"}
+                </TableCell>
+                <TableCell>
+                  {order.weight}{" "}
+                  {order.weightUnit === "g"
+                    ? "g"
+                    : order.weightUnit === "ml"
+                    ? "ml"
+                    : "kg"}
+                </TableCell>
+                <TableCell>
+                  <Switch
+                    checked={order.active !== false}
+                    onChange={(e) => {
+                      const menuDoc = doc(db, "menu", order.id);
+                      updateDoc(menuDoc, {
+                        active: e.target.checked,
+                      });
+                    }}
+                    color="primary"
+                    size="medium"
+                  />
+                </TableCell>
+              </>
+            )}
+            
+            <TableCell>
+              <IconButton
+                onClick={() => handleEdit(order)}
+                size={isMobile ? "small" : "medium"}
+                sx={{
+                  color: theme.palette.primary.main,
+                  "&:hover": {
+                    backgroundColor: "rgba(25, 118, 210, 0.08)",
+                  },
+                }}
+              >
+                <EditIcon fontSize={isMobile ? "small" : "medium"} />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
       )}
 
       {/* Пагинация - полностью сохранена, только добавлены условия isMobile */}

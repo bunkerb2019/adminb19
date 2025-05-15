@@ -82,7 +82,6 @@ const Dashboard = () => {
           width: "100%",
           marginLeft: "0 !important", // Убираем отрицательные отступы
           "& .MuiGrid-item": {
-            paddingLeft: "0 !important", // Фиксим возможные проблемы с padding
           },
         }}
       >
