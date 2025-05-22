@@ -48,7 +48,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
   const [descriptionRu, setDescriptionRu] = useState("");
   const [descriptionRo, setDescriptionRo] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
-  const [weight, setWeight] = useState<number | "">("");
+  const [weight, setWeight] = useState<string>("");
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -82,7 +82,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
         setDescriptionEn("");
       }
 
-      setWeight(item.weight || "");
+      setWeight(item.weight?.toString() || ""); // Преобразуем число в строку если нужно
       setPrice(item.price || "");
       setWeightUnit(item.weightUnit || "g");
       setCurrency(item.currency || "$");
@@ -121,7 +121,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
           ro: descriptionRo,
           en: descriptionEn,
         },
-        weight: Number(weight),
+        weight: weight,
         weightUnit,
         price: Number(price),
         currency,
@@ -130,7 +130,7 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
       },
       image
     );
-  setImage(null);
+    setImage(null);
   };
 
   const handleDeleteImage = async () => {
@@ -283,9 +283,8 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
         <Box sx={{ display: "flex", gap: 2 }}>
           <TextField
             label="Вес"
-            type="number"
             value={weight}
-            onChange={(e) => setWeight(Number(e.target.value) || "")}
+            onChange={(e) => setWeight(e.target.value)}
             fullWidth
           />
           <FormControl fullWidth>

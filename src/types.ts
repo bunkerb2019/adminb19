@@ -21,7 +21,7 @@ export interface Order {
     ro?: string;
     en?: string;
   };
-  weight?: number;
+  weight?: string;
   weightUnit?: 'g' | 'ml' | 'kg'; // Add this line
   price?: number;
   currency?: 'MDL' | '$' | '€'; // Add this line

@@ -36,7 +36,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
   const [descriptionRu, setDescriptionRu] = useState("");
   const [descriptionRo, setDescriptionRo] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
-  const [weight, setWeight] = useState<number | string>("");
+  const [weight, setWeight] = useState<string>("");
   const [price, setPrice] = useState<number | string>("");
   const [category, setCategory] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
@@ -71,7 +71,7 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
         ro: descriptionRo,
         en: descriptionEn,
       },
-      weight: Number(weight),
+      weight: weight,
       weightUnit, // Add this
       price: Number(price),
       currency, // Add this
@@ -159,9 +159,8 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
         <Box sx={{ display: "flex", gap: 2 }}>
           <TextField
             label="Вес"
-            type="number"
             value={weight}
-            onChange={(e) => setWeight(Number(e.target.value) || "")}
+            onChange={(e) => setWeight(e.target.value)}
             fullWidth
           />
           <FormControl fullWidth>
