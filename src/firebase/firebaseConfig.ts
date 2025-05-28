@@ -4,14 +4,15 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 // 🔥 Твой конфиг Firebase (замени своими данными)
 const firebaseConfig = {
-    apiKey: "AIzaSyBwes6yd-24ngRBBEaIs8SXGjd6Li86YbU",
-    authDomain: "main-menu-e6ed6.firebaseapp.com",
-    projectId: "main-menu-e6ed6",
-    storageBucket: "main-menu-e6ed6.firebasestorage.app",
-    messagingSenderId: "861499763984",
-    appId: "1:861499763984:web:eb00ba63de7368ea3e8995",
-    measurementId: "G-51DMHXXH1X"
-  };
+  apiKey: "AIzaSyB5GAgKVh-Y5tnB7LZ9lYXe-EZT2VKtnYc",
+  authDomain: "bunkerb19-79795.firebaseapp.com",
+  projectId: "bunkerb19-79795",
+  storageBucket: "bunkerb19-79795.firebasestorage.app",
+  messagingSenderId: "334546820539",
+  appId: "1:334546820539:web:089ec2418bd05ce82f389e",
+  measurementId: "G-HX219PQD6Z"
+};
+
 
 // Инициализация Firebase
 const app = initializeApp(firebaseConfig);
