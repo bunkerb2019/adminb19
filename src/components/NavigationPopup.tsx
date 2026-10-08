@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Modal,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  IconButton,
-  Stack,
-  Paper,
-} from "@mui/material";
+import { Box, Typography, TextField, Button, Stack, Paper } from "@mui/material";
 import {
   getStorage,
   ref,
@@ -16,12 +7,10 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
+import { db, ICON_UPLOAD_META } from "../firebase/firebaseConfig";
+import { saveBarSx } from "../styles/saveBarSx";
+import { showSaved } from "./SavedCheck";
 
 const storage = getStorage();
 
@@ -33,295 +22,148 @@ export interface NavigationItem {
   icon: string;
 }
 
-interface NavigationPopupProps {
-  open: boolean;
-  onClose: () => void;
-}
+const LANGS = [
+  { key: "ru", label: "Русский" },
+  { key: "ro", label: "Română" },
+  { key: "en", label: "English" },
+] as const;
 
-const NavigationPopup: React.FC<NavigationPopupProps> = ({ open, onClose }) => {
-  const [navigation, setNavigation] = useState<NavigationItem[]>([
-    { id: "1", ru: "", ro: "", en: "", icon: "" },
-    { id: "2", ru: "", ro: "", en: "", icon: "" },
-    { id: "3", ru: "", ro: "", en: "", icon: "" },
-  ]);
-
+const NavigationPopup = ({ onSaved }: { onSaved: () => void }) => {
+  const [navigation, setNavigation] = useState<NavigationItem[]>([]);
   const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>({});
-  const [editField, setEditField] = useState<{
-    id: string;
-    lang: "ru" | "ro" | "en";
-  } | null>(null);
-  const [validationErrors, setValidationErrors] = useState<{
-    [id: string]: { [lang: string]: string };
-  }>({});
+  const [previews, setPreviews] = useState<{ [key: string]: string }>({});
+  const [showErrors, setShowErrors] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchNavigation = async () => {
-      try {
-        const docRef = doc(db, "settings", "navigation");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setNavigation(docSnap.data().categories || []);
-        }
-      } catch (error) {
-        console.error("Error loading navigation:", error);
-      }
-    };
+    getDoc(doc(db, "settings", "navigation"))
+      .then((snap) => snap.exists() && setNavigation(snap.data().categories || []))
+      .catch((error) => console.error("Error loading navigation:", error));
+  }, []);
 
-    if (open) fetchNavigation();
-  }, [open]);
-
-  const validateItem = (item: NavigationItem) => {
-    const errors: { [lang: string]: string } = {};
-    if (!item.ru) errors.ru = "Required";
-    if (!item.ro) errors.ro = "Required";
-    if (!item.en) errors.en = "Required";
-    return errors;
-  };
-
-  const handleInputChange = (
-    id: string,
-    field: "ru" | "ro" | "en",
-    value: string
-  ) => {
-    const updatedNavigation = navigation.map((item) =>
-      item.id === id ? { ...item, [field]: value } : item
-    );
-    setNavigation(updatedNavigation);
-    setValidationErrors((prev) => ({
-      ...prev,
-      [id]: validateItem(updatedNavigation.find((navItem) => navItem.id === id)!),
-    }));
-  };
-
-  const handleIconUpload = (id: string, file: File | null) => {
-    setIconFiles((prev) => ({ ...prev, [id]: file }));
-  };
+  const update = (id: string, patch: Partial<NavigationItem>) =>
+    setNavigation((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
 
   const handleSave = async () => {
-    const newValidationErrors: { [id: string]: { [lang: string]: string } } = {};
-    let hasErrors = false;
-
-    navigation.forEach((item) => {
-      const errors = validateItem(item);
-      newValidationErrors[item.id] = errors;
-      if (Object.keys(errors).length > 0) hasErrors = true;
-    });
-
-    setValidationErrors(newValidationErrors);
-    if (hasErrors) return;
-
+    if (navigation.some((item) => !item.ru || !item.ro || !item.en)) {
+      setShowErrors(true);
+      return;
+    }
+    setSaving(true);
     try {
       const updatedNavigation = [...navigation];
       for (const item of updatedNavigation) {
         if (iconFiles[item.id]) {
           const storageRef = ref(storage, `navigation/${item.id}`);
-          await uploadBytes(storageRef, iconFiles[item.id]!);
+          await uploadBytes(storageRef, iconFiles[item.id]!, ICON_UPLOAD_META);
           item.icon = await getDownloadURL(storageRef);
         }
       }
-      setNavigation(updatedNavigation);
       await updateDoc(doc(db, "settings", "navigation"), {
         categories: updatedNavigation,
       });
       setIconFiles({});
-      setEditField(null);
-      onClose();
+      showSaved();
+      onSaved();
     } catch (error) {
       console.error("Save error:", error);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDeleteIcon = async (id: string) => {
-    try {
-      await deleteObject(ref(storage, `navigation/${id}`));
-      setNavigation((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, icon: "" } : item))
-      );
-    } catch (error) {
-      console.error("Error deleting icon:", error);
-    }
+    setIconFiles((prev) => ({ ...prev, [id]: null }));
+    setPreviews((prev) => ({ ...prev, [id]: "" }));
+    update(id, { icon: "" });
+    await deleteObject(ref(storage, `navigation/${id}`)).catch(() => {});
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "95%",
-          maxWidth: 800,
-          bgcolor: "background.paper",
-          p: { xs: 2, sm: 3 },
-          borderRadius: 2,
-          boxShadow: 24,
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h6">Navigation Editor</Typography>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ flex: 1, overflowY: "auto", pr: 1 }}>
-          {navigation.map((item) => (
+    <Box>
+      <Stack spacing={1.5}>
+        {navigation.map((item) => {
+          const iconSrc = previews[item.id] || item.icon;
+          return (
             <Paper
               key={item.id}
-              elevation={2}
-              sx={{
-                mb: 2,
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: "background.default",
-              }}
+              elevation={0}
+              sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: "24px", bgcolor: "background.paper" }}
             >
-              <Stack
-                direction="row"
-                spacing={1.5}
-                alignItems="center"
-                sx={{ mb: 1, flexWrap: "wrap" }}
-              >
-                <Typography variant="body2">Страница {item.id}</Typography>
-
-                <Button
-                  component="label"
-                  size="small"
-                  startIcon={<CloudUploadIcon fontSize="small" />}
-                  sx={{ height: 32 }}
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    flexShrink: 0,
+                    borderRadius: "50%",
+                    bgcolor: "#111",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  {item.icon ? "Change" : "Add Icon"}
+                  {iconSrc ? (
+                    <img src={iconSrc} alt="" style={{ width: 24, height: 24, objectFit: "contain" }} />
+                  ) : (
+                    <Typography color="#fff" fontWeight={700}>
+                      {item.id}
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                  <Typography fontWeight={700}>{item.ru || `Страница ${item.id}`}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Страница {item.id}
+                  </Typography>
+                </Box>
+                <Button component="label" size="small" variant="outlined">
+                  {iconSrc ? "Иконка" : "Добавить иконку"}
                   <input
                     type="file"
+                    accept="image/*"
                     hidden
-                    onChange={(e) =>
-                      handleIconUpload(item.id, e.target.files?.[0] || null)
-                    }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setIconFiles((prev) => ({ ...prev, [item.id]: file }));
+                      setPreviews((prev) => ({ ...prev, [item.id]: URL.createObjectURL(file) }));
+                      e.target.value = "";
+                    }}
                   />
                 </Button>
-
-                {item.icon && (
-                  <>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: 1,
-                        backgroundColor: "rgba(0, 0, 0, 0.5)",
-                      }}
-                    >
-                      <img
-                        src={item.icon}
-                        alt="icon"
-                        style={{ width: 24, height: 24, objectFit: "contain" }}
-                      />
-                    </Box>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteIcon(item.id)}
-                      sx={{ height: 32, width: 32 }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </>
+                {iconSrc && (
+                  <Button size="small" color="error" onClick={() => handleDeleteIcon(item.id)}>
+                    Убрать
+                  </Button>
                 )}
               </Stack>
 
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1.5}
-                sx={{ mb: 1 }}
-              >
-                {(["ru", "ro", "en"] as const).map((lang) => (
-                  <Box key={lang} sx={{ flex: 1 }}>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Typography variant="caption" sx={{ width: 24 }}>
-                        {lang.toUpperCase()}
-                      </Typography>
-                      {editField?.id === item.id && editField.lang === lang ? (
-                        <TextField
-                          fullWidth
-                          size="small"
-                          value={item[lang]}
-                          onChange={(e) =>
-                            handleInputChange(item.id, lang, e.target.value)
-                          }
-                          onBlur={() => setEditField(null)}
-                          autoFocus
-                          error={!!validationErrors[item.id]?.[lang]}
-                          helperText={validationErrors[item.id]?.[lang]}
-                          sx={{
-                            "& .MuiInputBase-root": { height: 32 },
-                          }}
-                        />
-                      ) : (
-                        <Paper
-                          variant="outlined"
-                          sx={{
-                            flex: 1,
-                            p: "6px 10px",
-                            minHeight: 32,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            cursor: "pointer",
-                            transition: "0.2s",
-                            borderColor: validationErrors[item.id]?.[lang]
-                              ? "error.main"
-                              : "divider",
-                            "&:hover": {
-                              backgroundColor: "action.hover",
-                            },
-                          }}
-                          onClick={() => setEditField({ id: item.id, lang })}
-                        >
-                          <Typography variant="body2">
-                            {item[lang] || (
-                              <span style={{ opacity: 0.5 }}>Click to edit</span>
-                            )}
-                          </Typography>
-                        </Paper>
-                      )}
-                      <IconButton
-                        size="small"
-                        onClick={() => setEditField({ id: item.id, lang })}
-                        sx={{ height: 32, width: 32 }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                  </Box>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                {LANGS.map(({ key, label }) => (
+                  <TextField
+                    key={key}
+                    label={label}
+                    value={item[key]}
+                    onChange={(e) => update(item.id, { [key]: e.target.value })}
+                    error={showErrors && !item[key]}
+                    helperText={showErrors && !item[key] ? "Обязательное поле" : undefined}
+                    size="small"
+                    fullWidth
+                  />
                 ))}
               </Stack>
             </Paper>
-          ))}
-        </Box>
+          );
+        })}
+      </Stack>
 
-        <Button
-          variant="contained"
-          size="medium"
-          onClick={handleSave}
-          fullWidth
-          sx={{ mt: 2, height: 44, fontWeight: 500 }}
-        >
-          Save
+      <Box sx={saveBarSx}>
+        <Button variant="contained" size="large" onClick={handleSave} disabled={saving}>
+          {saving ? "Сохраняю..." : "Сохранить"}
         </Button>
       </Box>
-    </Modal>
+    </Box>
   );
 };
 

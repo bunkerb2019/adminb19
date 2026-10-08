@@ -6,7 +6,11 @@ interface DashboardCardProps {
   children?: React.ReactNode; // Добавили children
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ title, value, children }) => {
+const DashboardCard: React.FC<DashboardCardProps> = ({
+  title,
+  value,
+  children,
+}) => {
   return (
     <Card>
       <CardContent>

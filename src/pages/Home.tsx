@@ -1,9 +1,8 @@
-import {useEffect, useState} from "react";
-import {collection, getDocs, doc, getDoc} from "firebase/firestore";
-import {db} from "../firebase/firebaseConfig";
+import { useEffect, useState, memo } from "react";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 import StatisticsOverview from "../components/Statistics/StatisticsOverview"; // убедись, что импорт есть!
-import {useAppViewsContext} from "../contexts/AppViewsContext.tsx";
-
+import { useAppViewsContext } from "../contexts/AppViewsContext.tsx";
 
 const Home = () => {
   const [stats, setStats] = useState({
@@ -11,10 +10,10 @@ const Home = () => {
     totalCategories: 0,
     productsWithoutImage: 0,
     conversionRate: 0,
-    views: [{name: '', value: 0}],
+    views: [{ name: "", value: 0 }],
   });
 
-  const {filteredAndSortedData} = useAppViewsContext();
+  const { filteredAndSortedData } = useAppViewsContext();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -47,14 +46,14 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    setStats({...stats, views: filteredAndSortedData});
+    setStats((prevStats) => ({ ...prevStats, views: filteredAndSortedData }));
   }, [filteredAndSortedData]);
 
   return (
-    <div>
-      <StatisticsOverview stats={stats}/>
+    <div style={{ position: "relative", zIndex: 1 }}>
+      <StatisticsOverview stats={stats} />
     </div>
   );
 };
 
-export default Home;
+export default memo(Home);

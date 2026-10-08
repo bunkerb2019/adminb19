@@ -12,7 +12,9 @@ import {
   Tabs,
   Tab,
   Box,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { Order } from "../types";
 import useCreateMenuItem from "../hooks/useCreateMenuItem";
 import useCategories from "../modules/categories/useCategories";
@@ -86,7 +88,12 @@ const AddItemPopup: React.FC<AddItemPopupProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Добавить товар</DialogTitle>
+      <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
+        <Box sx={{ flex: 1 }}>Добавить товар</Box>
+        <IconButton onClick={onClose} aria-label="Закрыть" edge="end">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}
       >

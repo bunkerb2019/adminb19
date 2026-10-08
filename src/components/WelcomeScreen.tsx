@@ -3,9 +3,10 @@ import { useAuth } from "../providers/AuthProvider";
 import { loginWithGoogle, logout } from "../firebase/auth";
 import GoogleIcon from "@mui/icons-material/Google";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import logo from "../assets/logo.png";
 
 const WelcomeScreen = () => {
-  const { user,  isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   return (
     <Box
@@ -13,21 +14,27 @@ const WelcomeScreen = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        minHeight: "100dvh",
         p: 2,
       }}
     >
       <Paper
-        elevation={6}
+        variant="outlined"
         sx={{
-          p: 4,
+          p: { xs: 3, sm: 4 },
           maxWidth: 400,
           width: "100%",
           textAlign: "center",
-          borderRadius: 4,
+          borderRadius: "28px",
+          bgcolor: "#fff",
         }}
       >
+        <Box
+          component="img"
+          src={logo}
+          alt="Bunker B19"
+          sx={{ width: 72, height: 72, mb: 2 }}
+        />
         {user?.photoURL && (
           <Avatar
             src={user.photoURL}
@@ -36,12 +43,17 @@ const WelcomeScreen = () => {
               height: 100,
               mx: "auto",
               mb: 3,
-              border: "3px solid #1976d2",
+              border: "3px solid #111",
             }}
           />
         )}
 
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{ fontWeight: 700 }}
+        >
           {user ? "Добро пожаловать!" : "Панель управления"}
         </Typography>
 
@@ -57,7 +69,12 @@ const WelcomeScreen = () => {
               </Typography>
             )}
 
-            <Stack direction="row" justifyContent="center" spacing={2} sx={{ mt: 4 }}>
+            <Stack
+              direction="row"
+              justifyContent="center"
+              spacing={2}
+              sx={{ mt: 4 }}
+            >
               <Button
                 variant="contained"
                 onClick={logout}
@@ -90,8 +107,8 @@ const WelcomeScreen = () => {
                 borderRadius: 2,
                 textTransform: "none",
                 fontSize: "1rem",
-                bgcolor: "#4285F4",
-                "&:hover": { bgcolor: "#3367D6" },
+                bgcolor: "#111",
+                "&:hover": { bgcolor: "#333" },
               }}
             >
               Войти через Google

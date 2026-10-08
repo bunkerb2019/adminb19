@@ -8,6 +8,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { db } from "../firebase/firebaseConfig";
+import { showSaved } from "../components/SavedCheck";
 import {
   Box,
   Button,
@@ -63,10 +64,10 @@ const ImageUploader = ({
           variant="outlined"
           component="label"
           size="small"
-          sx={{ 
-            minWidth: 0, 
+          sx={{
+            minWidth: 0,
             px: 1.5,
-            fontSize: '0.75rem'
+            fontSize: "0.75rem",
           }}
         >
           Загрузить
@@ -118,42 +119,50 @@ const ImageUploader = ({
 };
 
 const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-    <Typography variant="body2" sx={{ 
-      minWidth: '80px', 
-      fontSize: '0.75rem',
-      color: 'text.secondary'
-    }}>
+  <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
+    <Typography
+      variant="body2"
+      sx={{
+        minWidth: "80px",
+        fontSize: "0.75rem",
+        color: "text.secondary",
+      }}
+    >
       {label}
     </Typography>
     <Box
       component="input"
       type="color"
       value={value}
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(e.target.value)
+      }
       sx={{
-        width: '32px',
-        height: '32px',
+        width: "32px",
+        height: "32px",
         padding: 0,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        '&::-webkit-color-swatch': {
-          border: 'none',
-          borderRadius: '3px',
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: "4px",
+        cursor: "pointer",
+        "&::-webkit-color-swatch": {
+          border: "none",
+          borderRadius: "3px",
         },
-        '&::-moz-color-swatch': {
-          border: 'none',
-          borderRadius: '3px',
-        }
+        "&::-moz-color-swatch": {
+          border: "none",
+          borderRadius: "3px",
+        },
       }}
     />
-    <Typography variant="body2" sx={{ 
-      fontSize: '0.75rem',
-      color: 'text.secondary',
-      ml: 0.5
-    }}>
+    <Typography
+      variant="body2"
+      sx={{
+        fontSize: "0.75rem",
+        color: "text.secondary",
+        ml: 0.5,
+      }}
+    >
       {value}
     </Typography>
   </Box>
@@ -182,8 +191,10 @@ interface SettingsData {
 }
 
 const Settings = () => {
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-  
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+
   const [welcomeText, setWelcomeText] = useState<string>("");
   const [welcomeBackground, setWelcomeBackground] = useState<string>("#f0f0f0");
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
@@ -199,12 +210,15 @@ const Settings = () => {
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [cardTextColor, setCardTextColor] = useState<string>("#000000");
   const [cardBorderColor, setCardBorderColor] = useState<string>("#cccccc");
-  const [cardBackgroundColor, setCardBackgroundColor] = useState<string>("#ffffff");
+  const [cardBackgroundColor, setCardBackgroundColor] =
+    useState<string>("#ffffff");
   const [cardBackgroundOpacity, setCardBackgroundOpacity] = useState<number>(1);
   const [BackgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [cardBlur, setCardBlur] = useState<number>(0);
   const [placeholderImage, setPlaceholderImage] = useState<string | null>(null);
-  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(null);
+  const [placeholderImageFile, setPlaceholderImageFile] = useState<File | null>(
+    null
+  );
   const [uiLogo, setUiLogo] = useState<string | null>(null);
   const [uiLogoFile, setUiLogoFile] = useState<File | null>(null);
 
@@ -317,7 +331,7 @@ const Settings = () => {
       cardBlur,
       placeholderImage,
       uiLogo,
-      navbarTextColor: ""
+      navbarTextColor: "",
     };
 
     const hasChanges =
@@ -462,7 +476,7 @@ const Settings = () => {
       setPlaceholderImageFile(null);
       setUiLogoFile(null);
 
-      alert("Настройки успешно сохранены");
+      showSaved();
     } catch (error) {
       console.error("Ошибка при обновлении настроек:", error);
       setError("Ошибка при сохранении настроек");
@@ -537,7 +551,7 @@ const Settings = () => {
         [fieldName]: null,
       }));
 
-      alert(`Изображение успешно удалено`);
+      showSaved("Изображение удалено");
     } catch (error) {
       console.error("Ошибка при удалении изображения:", error);
       setError("Ошибка при удалении изображения");
@@ -559,26 +573,16 @@ const Settings = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ 
-      mt: isMobile ? 2 : 3, 
-      mb: 10, 
-      px: isMobile ? 1 : 2,
-      '& .MuiCard-root': {
-        transition: 'all 0.2s ease',
-      }
-    }}>
-      <Typography
-        variant="h5"
-        gutterBottom
-        align="center"
-        sx={{
-          fontWeight: 600,
-          mb: 3,
-          fontSize: isMobile ? '1.5rem' : '2rem',
-        }}
-      >
-        Настройки
-      </Typography>
+    <Container
+      maxWidth="lg"
+      sx={{
+        mb: 10,
+        px: 0,
+        "& .MuiCard-root": {
+          transition: "all 0.2s ease",
+        },
+      }}
+    >
 
       {loading && (
         <Typography variant="body2" align="center" sx={{ my: 2 }}>
@@ -592,15 +596,17 @@ const Settings = () => {
         </Typography>
       )}
 
-      <Box sx={{ 
-        position: "fixed", 
-        bottom: 16, 
-        right: 16, 
-        zIndex: 1000,
-        '& button': {
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }
-      }}>
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: { xs: "calc(84px + env(safe-area-inset-bottom))", md: 24 },
+          right: 16,
+          zIndex: 1000,
+          "& button": {
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
         <Button
           variant="contained"
           color="primary"
@@ -609,16 +615,15 @@ const Settings = () => {
           startIcon={<SaveIcon />}
           size={isMobile ? "medium" : "large"}
           sx={{
-            borderRadius: "12px",
-            minWidth: isMobile ? '120px' : '160px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            '&:hover': {
-              transform: 'translateY(-2px)',
+            minWidth: isMobile ? "120px" : "160px",
+            fontSize: isMobile ? "0.875rem" : "1rem",
+            "&:hover": {
+              transform: "translateY(-2px)",
             },
-            transition: 'transform 0.2s ease',
+            transition: "transform 0.2s ease",
           }}
         >
-          {isMobile ? 'Сохранить' : 'Сохранить'}
+          {isMobile ? "Сохранить" : "Сохранить"}
         </Button>
       </Box>
 
@@ -628,26 +633,27 @@ const Settings = () => {
             <Card
               sx={{
                 height: "100%",
-                borderRadius: 2,
-                boxShadow: 1,
-                '&:hover': {
-                  boxShadow: 3,
-                },
+                borderRadius: "20px",
               }}
             >
-              <CardContent sx={{ 
-                p: isMobile ? 1.5 : 2,
-                '&:last-child': {
-                  pb: isMobile ? 1.5 : 2
-                }
-              }}>
+              <CardContent
+                sx={{
+                  p: isMobile ? 1.5 : 2,
+                  "&:last-child": {
+                    pb: isMobile ? 1.5 : 2,
+                  },
+                }}
+              >
                 {step === 1 && (
                   <>
-                    <Typography variant="subtitle1" sx={{ 
-                      fontWeight: 600, 
-                      mb: 1.5,
-                      fontSize: isMobile ? '1rem' : '1.1rem'
-                    }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1.5,
+                        fontSize: isMobile ? "1rem" : "1.1rem",
+                      }}
+                    >
                       Приветствие
                     </Typography>
                     <Divider sx={{ mb: 1.5 }} />
@@ -674,7 +680,9 @@ const Settings = () => {
                     <ImageUploader
                       label="Логотип компании"
                       imageUrl={companyLogo}
-                      onFileChange={(e) => handleFileChange(e, setCompanyLogoFile)}
+                      onFileChange={(e) =>
+                        handleFileChange(e, setCompanyLogoFile)
+                      }
                       onDelete={deleteImage}
                       imageType="logo"
                     />
@@ -683,11 +691,14 @@ const Settings = () => {
 
                 {step === 2 && (
                   <>
-                    <Typography variant="subtitle1" sx={{ 
-                      fontWeight: 600, 
-                      mb: 1.5,
-                      fontSize: isMobile ? '1rem' : '1.1rem'
-                    }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1.5,
+                        fontSize: isMobile ? "1rem" : "1.1rem",
+                      }}
+                    >
                       Внешний вид
                     </Typography>
                     <Divider sx={{ mb: 1.5 }} />
@@ -700,31 +711,55 @@ const Settings = () => {
                       imageType="uiLogo"
                     />
 
-                    <Typography variant="body2" sx={{ 
-                      mt: 2,
-                      mb: 1,
-                      fontSize: '0.75rem',
-                      color: 'text.secondary',
-                      fontWeight: 500
-                    }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mt: 2,
+                        mb: 1,
+                        fontSize: "0.75rem",
+                        color: "text.secondary",
+                        fontWeight: 500,
+                      }}
+                    >
                       Цвета интерфейса:
                     </Typography>
 
-                    <ColorPicker label="Фон" value={backgroundColor} onChange={setBackgroundColor} />
-                    <ColorPicker label="Текст" value={textColor} onChange={setTextColor} />
-                    <ColorPicker label="Активный" value={navbarTextColor} onChange={setNavbarTextColor} />
-                    <ColorPicker label="Панель" value={navbarColor} onChange={setNavbarColor} />
+                    <ColorPicker
+                      label="Фон"
+                      value={backgroundColor}
+                      onChange={setBackgroundColor}
+                    />
+                    <ColorPicker
+                      label="Текст"
+                      value={textColor}
+                      onChange={setTextColor}
+                    />
+                    <ColorPicker
+                      label="Активный"
+                      value={navbarTextColor}
+                      onChange={setNavbarTextColor}
+                    />
+                    <ColorPicker
+                      label="Панель"
+                      value={navbarColor}
+                      onChange={setNavbarColor}
+                    />
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" sx={{ 
-                        fontSize: '0.75rem',
-                        color: 'text.secondary'
-                      }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
                         Прозрачность фона: {BackgroundOpacity.toFixed(2)}
                       </Typography>
                       <Slider
                         value={BackgroundOpacity}
-                        onChange={(_, newValue) => setBackgroundOpacity(newValue as number)}
+                        onChange={(_, newValue) =>
+                          setBackgroundOpacity(newValue as number)
+                        }
                         step={0.01}
                         min={0}
                         max={1}
@@ -734,15 +769,20 @@ const Settings = () => {
                     </Box>
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" sx={{ 
-                        fontSize: '0.75rem',
-                        color: 'text.secondary'
-                      }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
                         Прозрачность панели: {navbarOpacity.toFixed(2)}
                       </Typography>
                       <Slider
                         value={navbarOpacity}
-                        onChange={(_, newValue) => setNavbarOpacity(newValue as number)}
+                        onChange={(_, newValue) =>
+                          setNavbarOpacity(newValue as number)
+                        }
                         step={0.01}
                         min={0}
                         max={1}
@@ -755,7 +795,9 @@ const Settings = () => {
                       <ImageUploader
                         label="Фоновая картинка"
                         imageUrl={backgroundImage}
-                        onFileChange={(e) => handleFileChange(e, setBackgroundFile)}
+                        onFileChange={(e) =>
+                          handleFileChange(e, setBackgroundFile)
+                        }
                         onDelete={deleteImage}
                         imageType="background"
                       />
@@ -765,29 +807,49 @@ const Settings = () => {
 
                 {step === 3 && (
                   <>
-                    <Typography variant="subtitle1" sx={{ 
-                      fontWeight: 600, 
-                      mb: 1.5,
-                      fontSize: isMobile ? '1rem' : '1.1rem'
-                    }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1.5,
+                        fontSize: isMobile ? "1rem" : "1.1rem",
+                      }}
+                    >
                       Карточка товара
                     </Typography>
                     <Divider sx={{ mb: 1.5 }} />
 
-                    <ColorPicker label="Текст" value={cardTextColor} onChange={setCardTextColor} />
-                    <ColorPicker label="Рамка" value={cardBorderColor} onChange={setCardBorderColor} />
-                    <ColorPicker label="Фон" value={cardBackgroundColor} onChange={setCardBackgroundColor} />
+                    <ColorPicker
+                      label="Текст"
+                      value={cardTextColor}
+                      onChange={setCardTextColor}
+                    />
+                    <ColorPicker
+                      label="Рамка"
+                      value={cardBorderColor}
+                      onChange={setCardBorderColor}
+                    />
+                    <ColorPicker
+                      label="Фон"
+                      value={cardBackgroundColor}
+                      onChange={setCardBackgroundColor}
+                    />
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" sx={{ 
-                        fontSize: '0.75rem',
-                        color: 'text.secondary'
-                      }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
                         Прозрачность фона: {cardBackgroundOpacity.toFixed(2)}
                       </Typography>
                       <Slider
                         value={cardBackgroundOpacity}
-                        onChange={(_, newValue) => setCardBackgroundOpacity(newValue as number)}
+                        onChange={(_, newValue) =>
+                          setCardBackgroundOpacity(newValue as number)
+                        }
                         step={0.01}
                         min={0}
                         max={1}
@@ -797,15 +859,20 @@ const Settings = () => {
                     </Box>
 
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" sx={{ 
-                        fontSize: '0.75rem',
-                        color: 'text.secondary'
-                      }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
                         Размытие фона (px): {cardBlur}
                       </Typography>
                       <Slider
                         value={cardBlur}
-                        onChange={(_, newValue) => setCardBlur(newValue as number)}
+                        onChange={(_, newValue) =>
+                          setCardBlur(newValue as number)
+                        }
                         step={1}
                         min={0}
                         max={20}
@@ -818,7 +885,9 @@ const Settings = () => {
                       <ImageUploader
                         label="Заглушка фото"
                         imageUrl={placeholderImage}
-                        onFileChange={(e) => handleFileChange(e, setPlaceholderImageFile)}
+                        onFileChange={(e) =>
+                          handleFileChange(e, setPlaceholderImageFile)
+                        }
                         onDelete={deleteImage}
                         imageType="placeholder"
                       />

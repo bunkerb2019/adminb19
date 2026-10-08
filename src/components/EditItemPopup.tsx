@@ -24,6 +24,7 @@ import useCreateMenuItem from "../hooks/useCreateMenuItem";
 import { getDownloadURL, ref, deleteObject } from "firebase/storage";
 import { ImageUploadInput } from "./ImageUploadInput";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
 import { useLanguage } from "../contexts/LanguageContext";
 
 interface EditItemPopupProps {
@@ -192,12 +193,17 @@ const EditItemPopup: React.FC<EditItemPopupProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        {getText({
-          ru: "Редактировать товар",
-          en: "Edit item",
-          ro: "Editați produs",
-        })}
+      <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
+        <Box sx={{ flex: 1 }}>
+          {getText({
+            ru: "Редактировать товар",
+            en: "Edit item",
+            ro: "Editați produs",
+          })}
+        </Box>
+        <IconButton onClick={onClose} aria-label="Закрыть" edge="end">
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}

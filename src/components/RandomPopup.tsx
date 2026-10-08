@@ -1,52 +1,118 @@
-import { useState, useEffect, useMemo, Key } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  Modal,
   Box,
   Typography,
   Button,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Checkbox,
-  ListItemText,
-  FormHelperText,
   TextField,
-  Chip,
   Switch,
-  FormControlLabel,
-  Grid,
+  Stack,
   Paper,
-  Tabs,
-  Tab,
-  useMediaQuery,
-  useTheme,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/EditOutlined";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import CheckIcon from "@mui/icons-material/Check";
 import { useQueryClient } from "@tanstack/react-query";
-import { setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 import useCategories from "../modules/categories/useCategories";
 import { useRandomSettings } from "../hooks/useRandomSettings";
 import queryKeys from "../utils/queryKeys";
 import { getRandomSettingsDoc } from "../utils/firebaseDoc";
 import { Category, RandomSettings, RandomizerConfig } from "../types";
+import { saveBarSx } from "../styles/saveBarSx";
+import { showSaved } from "./SavedCheck";
 
-interface RandomPopupProps {
-  open: boolean;
-  onClose: () => void;
-}
+type Lang = "ru" | "ro" | "en";
+type Draft = Omit<RandomizerConfig, "id"> & { id?: string };
 
-const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+const LANGS: { key: Lang; label: string }[] = [
+  { key: "ru", label: "Русский" },
+  { key: "ro", label: "Română" },
+  { key: "en", label: "English" },
+];
+
+const emptyDraft = (navigation: string): Draft => ({
+  slotTitle: { ru: "", ro: "", en: "" },
+  navigation,
+  categoryIds: [],
+  active: true,
+});
+
+const cardSx = { p: { xs: 2, sm: 2.5 }, borderRadius: "24px", bgcolor: "background.paper" };
+
+const Step = ({ n, title, hint }: { n: number; title: string; hint?: string }) => (
+  <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.25 }}>
+    <Box
+      sx={{
+        width: 24,
+        height: 24,
+        flexShrink: 0,
+        borderRadius: "50%",
+        bgcolor: "#111",
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: 700,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {n}
+    </Box>
+    <Box>
+      <Typography fontWeight={700} fontSize={14} lineHeight="24px">
+        {title}
+      </Typography>
+      {hint && (
+        <Typography variant="caption" color="text.secondary" component="div">
+          {hint}
+        </Typography>
+      )}
+    </Box>
+  </Stack>
+);
+
+const Pill = ({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) => (
+  <Box
+    component="button"
+    type="button"
+    onClick={onClick}
+    sx={{
+      all: "unset",
+      cursor: "pointer",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 0.5,
+      px: 1.5,
+      py: 0.75,
+      borderRadius: 999,
+      fontSize: 13,
+      fontWeight: 600,
+      border: "1.5px solid",
+      borderColor: selected ? "#111" : "rgba(0,0,0,0.12)",
+      bgcolor: selected ? "#111" : "#fff",
+      color: selected ? "#fff" : "text.primary",
+      transition: "all .15s",
+    }}
+  >
+    {selected && <CheckIcon sx={{ fontSize: 16 }} />}
+    {children}
+  </Box>
+);
+
+const RandomPopup = ({ onSaved }: { onSaved: () => void }) => {
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: currentSettings } = useRandomSettings();
-  const [languageTab, setLanguageTab] = useState<"ru" | "ro" | "en">("ru");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [pages, setPages] = useState<{ id: string; ru: string }[]>([]);
+  const [pageLang, setPageLang] = useState<Lang>("ru");
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [settings, setSettings] = useState<RandomSettings>({
     pageTitle: { ru: "", ro: "", en: "" },
@@ -54,534 +120,320 @@ const RandomPopup = ({ open, onClose }: RandomPopupProps) => {
     randomizers: [],
   });
 
-  const [newRandomizer, setNewRandomizer] = useState<Omit<RandomizerConfig, "id">>({
-    slotTitle: {
-      ru: "",
-      ro: "",
-      en: "",
-    },
-    navigation: "1",
-    categoryIds: [],
-    active: true,
-  });
-
-  const [errors, setErrors] = useState({
-    name: "",
-    categories: "",
-  });
-
   useEffect(() => {
-    if (currentSettings) {
-      setSettings({
-        pageTitle: currentSettings.pageTitle || { ru: "", ro: "", en: "" },
-        pageDescription: currentSettings.pageDescription || {
-          ru: "",
-          ro: "",
-          en: "",
-        },
-        randomizers: currentSettings.randomizers || [],
-      });
-    }
+    if (!currentSettings) return;
+    setSettings({
+      pageTitle: currentSettings.pageTitle || { ru: "", ro: "", en: "" },
+      pageDescription: currentSettings.pageDescription || { ru: "", ro: "", en: "" },
+      randomizers: currentSettings.randomizers || [],
+    });
   }, [currentSettings]);
 
-  const filteredCategories = useMemo(
-    () =>
-      categories.filter(
-        (cat: Category) => cat.parentId === newRandomizer.navigation
-      ),
-    [categories, newRandomizer.navigation]
+  useEffect(() => {
+    getDoc(doc(db, "settings", "navigation"))
+      .then((snap) => snap.exists() && setPages(snap.data().categories || []))
+      .catch(() => {});
+  }, []);
+
+  const pageName = (id: string) => pages.find((p) => p.id === id)?.ru || `Страница ${id}`;
+  const pageIds = pages.length ? pages.map((p) => p.id) : ["1", "2", "3"];
+  const categoryName = (id: string) => categories.find((c: Category) => c.id === id)?.ru || "—";
+
+  const draftCategories = useMemo(
+    () => (draft ? categories.filter((c: Category) => c.parentId === draft.navigation) : []),
+    [categories, draft]
   );
 
-  const handleSlotTitleChange = (lang: "ru" | "ro" | "en", value: string) => {
-    setNewRandomizer((prev) => ({
-      ...prev,
-      slotTitle: {
-        ...prev.slotTitle,
-        [lang]: value,
-      },
-    }));
-  };
+  const patchDraft = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d));
 
-  const handlePageTitleChange = (lang: "ru" | "ro" | "en", value: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      pageTitle: {
-        ...prev.pageTitle,
-        [lang]: value,
-      },
-    }));
-  };
-
-  const handlePageDescriptionChange = (
-    lang: "ru" | "ro" | "en",
-    value: string
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-      pageDescription: {
-        ...prev.pageDescription,
-        [lang]: value,
-      },
-    }));
-  };
-
-  const handleAddRandomizer = () => {
-    const validationErrors = {
-      name: !newRandomizer.slotTitle?.ru ? "Введите название (RU)" : "",
-      categories:
-        !newRandomizer.categoryIds || newRandomizer.categoryIds.length === 0
-          ? "Выберите категории"
-          : "",
-    };
-
-    setErrors(validationErrors);
-
-    if (Object.values(validationErrors).some(Boolean)) return;
-
-    const newConfig: RandomizerConfig = {
-      id: Date.now().toString(),
-      slotTitle: {
-        ru: newRandomizer.slotTitle?.ru || "Без названия",
-        ro: newRandomizer.slotTitle?.ro || newRandomizer.slotTitle?.ru || "",
-        en: newRandomizer.slotTitle?.en || newRandomizer.slotTitle?.ru || "",
-      },
-      navigation: newRandomizer.navigation || "1",
-      categoryIds: newRandomizer.categoryIds || [],
-      active: newRandomizer.active !== false,
-    };
-
-    setSettings((prev) => ({
-      ...prev,
-      randomizers: [...prev.randomizers, newConfig],
-    }));
-
-    setNewRandomizer({
-      slotTitle: { ru: "", ro: "", en: "" },
-      navigation: "1",
-      categoryIds: [],
-      active: true,
+  const toggleCategory = (id: string) =>
+    draft &&
+    patchDraft({
+      categoryIds: draft.categoryIds.includes(id)
+        ? draft.categoryIds.filter((c) => c !== id)
+        : [...draft.categoryIds, id],
     });
-  };
 
-  const handleEditRandomizer = (id: string) => {
-    const randomizerToEdit = settings.randomizers.find(r => r.id === id);
-    if (randomizerToEdit) {
-      setNewRandomizer({
-        slotTitle: randomizerToEdit.slotTitle,
-        navigation: randomizerToEdit.navigation,
-        categoryIds: randomizerToEdit.categoryIds,
-        active: randomizerToEdit.active
-      });
-      setEditingId(id);
-    }
-  };
+  const draftValid = !!draft?.slotTitle.ru && !!draft?.categoryIds.length;
 
-  const handleUpdateRandomizer = () => {
-    if (!editingId) return;
-
-    const validationErrors = {
-      name: !newRandomizer.slotTitle?.ru ? "Введите название (RU)" : "",
-      categories:
-        !newRandomizer.categoryIds || newRandomizer.categoryIds.length === 0
-          ? "Выберите категории"
-          : "",
+  const applyDraft = () => {
+    if (!draft) return;
+    if (!draftValid) return setShowErrors(true);
+    const config: RandomizerConfig = {
+      id: draft.id || Date.now().toString(),
+      slotTitle: {
+        ru: draft.slotTitle.ru,
+        ro: draft.slotTitle.ro || draft.slotTitle.ru,
+        en: draft.slotTitle.en || draft.slotTitle.ru,
+      },
+      navigation: draft.navigation,
+      categoryIds: draft.categoryIds,
+      active: draft.active,
     };
-
-    setErrors(validationErrors);
-
-    if (Object.values(validationErrors).some(Boolean)) return;
-
-    setSettings(prev => ({
-      ...prev,
-      randomizers: prev.randomizers.map(r => 
-        r.id === editingId ? {
-          ...r,
-          slotTitle: newRandomizer.slotTitle,
-          navigation: newRandomizer.navigation,
-          categoryIds: newRandomizer.categoryIds,
-          active: newRandomizer.active
-        } : r
-      )
-    }));
-
-    setEditingId(null);
-    setNewRandomizer({
-      slotTitle: { ru: "", ro: "", en: "" },
-      navigation: "1",
-      categoryIds: [],
-      active: true,
-    });
-  };
-
-  const handleRemoveRandomizer = (id: string) => {
     setSettings((prev) => ({
       ...prev,
-      randomizers: prev.randomizers.filter((r) => r.id !== id),
+      randomizers: draft.id
+        ? prev.randomizers.map((r) => (r.id === draft.id ? config : r))
+        : [...prev.randomizers, config],
     }));
+    setDraft(null);
+    setShowErrors(false);
   };
 
-  const handleToggleActive = (id: string) => {
+  const startDraft = (d: Draft) => {
+    setDraft(d);
+    setShowErrors(false);
+  };
+
+  const removeRandomizer = (r: RandomizerConfig) => {
+    if (!window.confirm(`Удалить «${r.slotTitle?.ru}»?`)) return;
+    setSettings((prev) => ({ ...prev, randomizers: prev.randomizers.filter((x) => x.id !== r.id) }));
+  };
+
+  const toggleActive = (id: string) =>
     setSettings((prev) => ({
       ...prev,
-      randomizers: prev.randomizers.map((r) =>
-        r.id === id ? { ...r, active: !r.active } : r
-      ),
+      randomizers: prev.randomizers.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
     }));
-  };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
-      const docRef = getRandomSettingsDoc();
-      await setDoc(docRef, {
+      await setDoc(getRandomSettingsDoc(), {
         pageTitle: settings.pageTitle,
         pageDescription: settings.pageDescription,
         randomizers: settings.randomizers,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.randomSettings() });
-      onClose();
+      showSaved();
+      onSaved();
     } catch (error) {
       console.error("Ошибка сохранения:", error);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const isFormValid = useMemo(() => {
-    return (
-      settings.pageTitle.ru &&
-      settings.randomizers.length > 0 &&
-      settings.randomizers.every(
-        (r) => r?.slotTitle?.ru && r.categoryIds?.length > 0
-      )
-    );
-  }, [settings]);
+  const canSave =
+    !!settings.pageTitle.ru &&
+    settings.randomizers.every((r) => r?.slotTitle?.ru && r.categoryIds?.length > 0) &&
+    !draft;
+
+  const editor = draft && (
+    <Paper elevation={0} sx={{ ...cardSx, border: "2px solid #111" }}>
+      <Typography fontWeight={700} fontSize={16} sx={{ mb: 2 }}>
+        {draft.id ? "Изменить рандомайзер" : "Новый рандомайзер"}
+      </Typography>
+
+      <Step n={1} title="Название кнопки" hint="Так раздел будет подписан у гостей" />
+      <Stack spacing={1.25} sx={{ mb: 2.5 }}>
+        {LANGS.map(({ key, label }) => (
+          <TextField
+            key={key}
+            size="small"
+            fullWidth
+            label={key === "ru" ? `${label} *` : `${label} (необязательно)`}
+            value={draft.slotTitle[key] || ""}
+            onChange={(e) => patchDraft({ slotTitle: { ...draft.slotTitle, [key]: e.target.value } })}
+            error={showErrors && key === "ru" && !draft.slotTitle.ru}
+            helperText={showErrors && key === "ru" && !draft.slotTitle.ru ? "Введите название" : undefined}
+          />
+        ))}
+      </Stack>
+
+      <Step n={2} title="Из какой страницы меню" hint="Откуда брать товары" />
+      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 2.5 }}>
+        {pageIds.map((id) => (
+          <Pill
+            key={id}
+            selected={draft.navigation === id}
+            onClick={() => draft.navigation !== id && patchDraft({ navigation: id, categoryIds: [] })}
+          >
+            {pageName(id)}
+          </Pill>
+        ))}
+      </Stack>
+
+      <Step
+        n={3}
+        title={`Категории · выбрано ${draft.categoryIds.length} из ${draftCategories.length}`}
+        hint="Товары из отмеченных категорий будут участвовать в розыгрыше"
+      />
+      <Stack direction="row" spacing={1} sx={{ mb: 1.25 }}>
+        <Button size="small" onClick={() => patchDraft({ categoryIds: draftCategories.map((c: Category) => c.id) })}>
+          Выбрать все
+        </Button>
+        <Button size="small" color="inherit" onClick={() => patchDraft({ categoryIds: [] })}>
+          Снять все
+        </Button>
+      </Stack>
+      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
+        {draftCategories.map((c: Category) => (
+          <Pill key={c.id} selected={draft.categoryIds.includes(c.id)} onClick={() => toggleCategory(c.id)}>
+            {c.ru}
+          </Pill>
+        ))}
+        {!draftCategories.length && (
+          <Typography variant="body2" color="text.secondary">
+            На этой странице нет категорий
+          </Typography>
+        )}
+      </Stack>
+      {showErrors && !draft.categoryIds.length && (
+        <Typography variant="caption" color="error">
+          Отметьте хотя бы одну категорию
+        </Typography>
+      )}
+
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 2, mb: 2 }}>
+        <Typography fontSize={14} fontWeight={600}>
+          Показывать гостям
+        </Typography>
+        <Switch checked={draft.active} onChange={(e) => patchDraft({ active: e.target.checked })} />
+      </Stack>
+
+      <Stack direction="row" spacing={1}>
+        <Button variant="contained" fullWidth size="large" onClick={applyDraft}>
+          {draft.id ? "Готово" : "Добавить"}
+        </Button>
+        <Button variant="outlined" fullWidth size="large" onClick={() => setDraft(null)}>
+          Отмена
+        </Button>
+      </Stack>
+    </Paper>
+  );
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "95%",
-          maxWidth: isMobile ? "100%" : 800, // Уменьшил максимальную ширину
-          bgcolor: "background.paper",
-          p: isMobile ? 1 : 2,
-          borderRadius: 2,
-          boxShadow: 24,
-          maxHeight: "90vh",
-          overflowY: "auto",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 1,
-          }}
+    <Box>
+      <Typography fontWeight={700} fontSize={13} color="text.secondary" sx={{ mb: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        Шапка страницы
+      </Typography>
+      <Paper elevation={0} sx={{ ...cardSx, mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          Заголовок и подпись вверху страницы «Случайное»
+        </Typography>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={pageLang}
+          onChange={(_, v) => v && setPageLang(v)}
+          sx={{ mb: 1.5 }}
         >
-          <Typography variant="h6">Управление рандомайзерами</Typography>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        {/* Настройки страницы - теперь в одну колонку */}
-        <Paper elevation={1} sx={{ p: 1, mb: 1 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Настройки страницы
-          </Typography>
-
-          <Tabs
-            value={languageTab}
-            onChange={(_, newValue) => setLanguageTab(newValue)}
-            sx={{ mb: 1 }}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab label="RU" value="ru" />
-            <Tab label="RO" value="ro" />
-            <Tab label="EN" value="en" />
-          </Tabs>
-
+          {LANGS.map(({ key }) => (
+            <ToggleButton key={key} value={key} sx={{ px: 2 }}>
+              {key.toUpperCase()}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <Stack spacing={1.25}>
           <TextField
-            fullWidth
             size="small"
-            label={`Заголовок (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
-            value={settings.pageTitle[languageTab]}
-            onChange={(e) => handlePageTitleChange(languageTab, e.target.value)}
-            sx={{ mb: 1 }}
-            required={languageTab === "ru"}
-          />
-
-          <TextField
             fullWidth
-            size="small"
-            label={`Описание (${languageTab.toUpperCase()})`}
-            value={settings.pageDescription[languageTab]}
+            label={pageLang === "ru" ? "Заголовок *" : "Заголовок"}
+            value={settings.pageTitle[pageLang] || ""}
             onChange={(e) =>
-              handlePageDescriptionChange(languageTab, e.target.value)
+              setSettings((p) => ({ ...p, pageTitle: { ...p.pageTitle, [pageLang]: e.target.value } }))
             }
-            multiline
-            rows={1}
+            error={pageLang === "ru" && !settings.pageTitle.ru}
           />
-        </Paper>
-
-        <Grid container spacing={1}>
-          {/* Форма добавления/редактирования */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={1} sx={{ p: 1, height: "100%" }}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                {editingId ? "Редактировать" : "Новый рандомайзер"}
-              </Typography>
-
-              <Tabs
-                value={languageTab}
-                onChange={(_, newValue) => setLanguageTab(newValue)}
-                sx={{ mb: 1 }}
-                variant="scrollable"
-                scrollButtons="auto"
-              >
-                <Tab label="RU" value="ru" />
-                <Tab label="RO" value="ro" />
-                <Tab label="EN" value="en" />
-              </Tabs>
-
-              <TextField
-                fullWidth
-                size="small"
-                label={`Название (${languageTab.toUpperCase()})${languageTab === "ru" ? "*" : ""}`}
-                value={newRandomizer.slotTitle[languageTab]}
-                onChange={(e) =>
-                  handleSlotTitleChange(languageTab, e.target.value)
-                }
-                error={!!errors.name && languageTab === "ru"}
-                helperText={languageTab === "ru" ? errors.name : ""}
-                sx={{ mb: 1 }}
-              />
-
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-                    <InputLabel>Навигация</InputLabel>
-                    <Select
-                      value={newRandomizer.navigation}
-                      label="Навигация"
-                      onChange={(e) =>
-                        setNewRandomizer({
-                          ...newRandomizer,
-                          navigation: e.target.value as string,
-                          categoryIds: [],
-                        })
-                      }
-                    >
-                      <MenuItem value="1">Страница 1</MenuItem>
-                      <MenuItem value="2">Страница 2</MenuItem>
-                      <MenuItem value="3">Страница 3</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        size="small"
-                        checked={newRandomizer.active}
-                        onChange={(e) =>
-                          setNewRandomizer({
-                            ...newRandomizer,
-                            active: e.target.checked,
-                          })
-                        }
-                      />
-                    }
-                    label="Активен"
-                    sx={{ mt: 1 }}
-                  />
-                </Grid>
-              </Grid>
-
-              <FormControl fullWidth size="small" error={!!errors.categories}>
-                <InputLabel>Категории*</InputLabel>
-                <Select
-                  multiple
-                  size="small"
-                  value={newRandomizer.categoryIds}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNewRandomizer({
-                      ...newRandomizer,
-                      categoryIds:
-                        typeof value === "string" ? value.split(",") : value,
-                    });
-                  }}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.slice(0, 3).map((id: Key | null | undefined) => {
-                        const category = categories.find((c) => c.id === id);
-                        return (
-                          <Chip
-                            key={id}
-                            label={category?.ru || id}
-                            size="small"
-                          />
-                        );
-                      })}
-                      {selected.length > 3 && (
-                        <Chip label={`+${selected.length - 3}`} size="small" />
-                      )}
-                    </Box>
-                  )}
-                >
-                  {filteredCategories.map((category: Category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      <Checkbox
-                        size="small"
-                        checked={newRandomizer.categoryIds.includes(
-                          category.id
-                        )}
-                      />
-                      <ListItemText primary={category.ru} />
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.categories && (
-                  <FormHelperText>{errors.categories}</FormHelperText>
-                )}
-              </FormControl>
-
-              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  size="small"
-                  startIcon={editingId ? <EditIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-                  onClick={editingId ? handleUpdateRandomizer : handleAddRandomizer}
-                  disabled={
-                    !newRandomizer.slotTitle.ru ||
-                    newRandomizer.categoryIds.length === 0
-                  }
-                >
-                  {editingId ? "Обновить" : "Добавить"}
-                </Button>
-
-                {editingId && (
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    onClick={() => {
-                      setEditingId(null);
-                      setNewRandomizer({
-                        slotTitle: { ru: "", ro: "", en: "" },
-                        navigation: "1",
-                        categoryIds: [],
-                        active: true,
-                      });
-                    }}
-                  >
-                    Отмена
-                  </Button>
-                )}
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Список рандомайзеров */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={1} sx={{ p: 1, height: "100%" }}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Рандомайзеры ({settings.randomizers.length})
-              </Typography>
-
-              {settings.randomizers.length === 0 ? (
-                <Typography
-                  color="text.secondary"
-                  sx={{ textAlign: "center", py: 2 }}
-                  variant="body2"
-                >
-                  Нет добавленных
-                </Typography>
-              ) : (
-                <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
-                  {settings.randomizers.map((randomizer) => (
-                    <Paper
-                      key={randomizer.id}
-                      sx={{
-                        p: 1,
-                        mb: 1,
-                        borderLeft: 2,
-                        borderColor: randomizer.active
-                          ? "primary.main"
-                          : "grey.500",
-                      }}
-                    >
-                      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                        <Box sx={{ overflow: 'hidden' }}>
-                          <Typography fontWeight="bold" variant="body2">
-                            {randomizer.slotTitle?.ru || "Без названия"}
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                            {randomizer.categoryIds.slice(0, 3).map((id) => {
-                              const category = categories.find((c) => c.id === id);
-                              return (
-                                <Chip
-                                  key={id}
-                                  label={category?.ru || id}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              );
-                            })}
-                            {randomizer.categoryIds.length > 3 && (
-                              <Chip label={`+${randomizer.categoryIds.length - 3}`} size="small" />
-                            )}
-                          </Box>
-                        </Box>
-                        <Box display="flex" flexDirection="column" alignItems="flex-end">
-                          <Box display="flex">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEditRandomizer(randomizer.id)}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleRemoveRandomizer(randomizer.id)}
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                          <Switch
-                            size="small"
-                            checked={randomizer.active}
-                            onChange={() => handleToggleActive(randomizer.id)}
-                          />
-                        </Box>
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-          <Button
-            variant="contained"
-            color="primary"
+          <TextField
             size="small"
-            onClick={handleSave}
-            disabled={!isFormValid}
-            sx={{ minWidth: 100 }}
+            fullWidth
+            label="Подпись"
+            value={settings.pageDescription[pageLang] || ""}
+            onChange={(e) =>
+              setSettings((p) => ({
+                ...p,
+                pageDescription: { ...p.pageDescription, [pageLang]: e.target.value },
+              }))
+            }
+          />
+        </Stack>
+      </Paper>
+
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Typography fontWeight={700} fontSize={13} color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+          Рандомайзеры · {settings.randomizers.length}
+        </Typography>
+      </Stack>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+        Каждый рандомайзер — отдельная кнопка у гостей. Нажал — крутится лента и выпадает случайный товар из выбранных
+        категорий.
+      </Typography>
+
+      <Stack spacing={1.25}>
+        {settings.randomizers.map((r) =>
+          draft?.id === r.id ? (
+            <Box key={r.id}>{editor}</Box>
+          ) : (
+            <Paper key={r.id} elevation={0} sx={{ ...cardSx, opacity: r.active ? 1 : 0.6 }}>
+              <Stack direction="row" alignItems="flex-start" spacing={1}>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                  <Typography fontWeight={700} fontSize={16} noWrap>
+                    {r.slotTitle?.ru || "Без названия"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {pageName(r.navigation)} · {r.categoryIds?.length || 0} кат. · {r.active ? "показывается" : "скрыт"}
+                  </Typography>
+                </Box>
+                <Switch checked={r.active} onChange={() => toggleActive(r.id)} inputProps={{ "aria-label": "Показывать" }} />
+              </Stack>
+              <Stack direction="row" flexWrap="wrap" gap={0.75} sx={{ my: 1.5 }}>
+                {r.categoryIds?.slice(0, 6).map((id) => (
+                  <Box key={id} sx={{ px: 1.25, py: 0.25, borderRadius: 999, bgcolor: "#fff", fontSize: 12, fontWeight: 600 }}>
+                    {categoryName(id)}
+                  </Box>
+                ))}
+                {r.categoryIds?.length > 6 && (
+                  <Box sx={{ px: 1.25, py: 0.25, fontSize: 12, color: "text.secondary" }}>
+                    ещё {r.categoryIds.length - 6}
+                  </Box>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<EditIcon />}
+                  disabled={!!draft}
+                  onClick={() => startDraft({ ...r })}
+                >
+                  Изменить
+                </Button>
+                <IconButton size="small" color="error" onClick={() => removeRandomizer(r)} aria-label="Удалить">
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
+            </Paper>
+          )
+        )}
+
+        {draft && !draft.id && editor}
+
+        {!draft && (
+          <Button
+            variant="outlined"
+            size="large"
+            startIcon={<AddIcon />}
+            onClick={() => startDraft(emptyDraft(pageIds[0]))}
+            sx={{ borderStyle: "dashed", height: 56, borderRadius: "24px" }}
           >
-            Сохранить
+            Новый рандомайзер
           </Button>
-        </Box>
+        )}
+      </Stack>
+
+      <Box sx={{ ...saveBarSx, flexDirection: "column", alignItems: { xs: "stretch", sm: "flex-end" }, gap: 0.75 }}>
+        {draft && (
+          <Typography variant="caption" color="text.secondary" textAlign="center" sx={{ bgcolor: "background.default", borderRadius: 999, px: 1.5, py: 0.5 }}>
+            Сначала нажмите «{draft.id ? "Готово" : "Добавить"}» в форме выше
+          </Typography>
+        )}
+        <Button variant="contained" size="large" onClick={handleSave} disabled={!canSave || saving}>
+          {saving ? "Сохраняю..." : "Сохранить"}
+        </Button>
       </Box>
-    </Modal>
+    </Box>
   );
 };
 

@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db, storage } from "../firebase/firebaseConfig"; // Импортируйте storage из firebaseConfig
 import { Order } from "../types";
+import { showSaved } from "../components/SavedCheck";
 
 type Props = {
   item?: Order;
@@ -50,10 +51,13 @@ const useCreateMenuItem = ({ item, onSave }: Props) => {
             updatedItem = {
               ...updatedItem,
               image: imagePath, // Обновляем URL изображения
+              // клиент добавляет версию в ссылку, иначе после замены фото покажет старое из кэша
+              imageVersion: Date.now(),
             };
           }
 
           await setDoc(menuDoc, updatedItem, { merge: true });
+          showSaved();
 
           onSave?.(updatedItem as Order);
         } catch (error) {

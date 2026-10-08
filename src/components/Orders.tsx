@@ -28,7 +28,6 @@ import {
   useMediaQuery,
   useTheme,
   Chip,
-  keyframes,
   styled,
   Drawer,
   Divider,
@@ -54,78 +53,20 @@ import { db, storage } from "../firebase/firebaseConfig";
 import { useLanguage } from "../contexts/LanguageContext";
 import { doc, updateDoc } from "firebase/firestore";
 
-// Анимация для кнопок (полностью сохранена)
-const pulseAnimation = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(25, 118, 210, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(25, 118, 210, 0);
-  }
-`;
-
-// Стилизованная кнопка "Добавить" (полностью сохранена)
 const AddButton = styled(Button)(() => ({
-  background: "linear-gradient(45deg, #1976d2 30%, #2196f3 90%)",
-  color: "white",
-  fontWeight: 600,
-  borderRadius: 8,
-  padding: "8px 16px",
-  boxShadow: "0 3px 5px rgba(25, 118, 210, 0.2)",
-  transition: "all 0.3s ease",
-  animation: `${pulseAnimation} 2s infinite`,
-  "&:hover": {
-    transform: "translateY(-2px)",
-    boxShadow: "0 5px 15px rgba(25, 118, 210, 0.4)",
-    background: "linear-gradient(45deg, #1976d2 20%, #2196f3 80%)",
-  },
-  "&:active": {
-    transform: "translateY(0)",
-  },
-  "& .MuiButton-startIcon": {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "50%",
-    padding: 4,
-    marginRight: 8,
-    transition: "all 0.3s ease",
-  },
-  "&:hover .MuiButton-startIcon": {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    transform: "rotate(90deg)",
-  },
+  background: "#111",
+  color: "#fff",
+  borderRadius: 999,
+  padding: "8px 18px",
+  "&:hover": { background: "#333" },
 }));
 
-// Стилизованная кнопка "Удалить" (полностью сохранена)
 const DeleteButton = styled(Button)(() => ({
-  background: "linear-gradient(45deg, #ff5252 30%, #ff867f 90%)",
-  color: "white",
-  fontWeight: 600,
-  borderRadius: 8,
-  padding: "8px 16px",
-  boxShadow: "0 3px 5px rgba(255, 82, 82, 0.2)",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-2px)",
-    boxShadow: "0 5px 15px rgba(255, 82, 82, 0.4)",
-    background: "linear-gradient(45deg, #ff5252 20%, #ff867f 80%)",
-  },
-  "&:active": {
-    transform: "translateY(0)",
-  },
-  "& .MuiButton-startIcon": {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "50%",
-    padding: 4,
-    marginRight: 8,
-    transition: "all 0.3s ease",
-  },
-  "&:hover .MuiButton-startIcon": {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    transform: "scale(1.1)",
-  },
+  background: "#fff",
+  color: "#d32f2f",
+  borderRadius: 999,
+  padding: "8px 18px",
+  "&:hover": { background: "#fdecec" },
 }));
 
 const Orders = () => {
@@ -148,11 +89,12 @@ const Orders = () => {
   const [imagePopupOpen, setImagePopupOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   // Добавлен только этот хук для определения мобильных устройств
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const itemsPerPage = isMobile ? 5 : 10;
+  const itemsPerPage = isMobile ? 12 : 10;
   const { getText } = useLanguage();
 
   // Фильтрация и сортировка (полностью сохранена)
@@ -281,11 +223,11 @@ const Orders = () => {
       onClose={() => setMobileFiltersOpen(false)}
       PaperProps={{
         sx: {
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
           px: 2,
           pt: 1,
-          pb: 2,
+          pb: "calc(16px + env(safe-area-inset-bottom))",
         },
       }}
     >
@@ -406,11 +348,8 @@ const Orders = () => {
   return (
     <Paper
       sx={{
-        mt: 4,
-        p: isMobile ? 2 : 3,
-        borderRadius: 2,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        background: theme.palette.background.paper,
+        p: 0,
+        bgcolor: "transparent",
         width: "100%",
         overflowX: "auto",
         boxSizing: "border-box",
@@ -422,26 +361,25 @@ const Orders = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 3,
-          flexDirection: isMobile ? "column" : "row",
-          gap: isMobile ? 2 : 0,
+          mb: 2,
+          gap: 1,
         }}
       >
-        <Typography variant="h6" component="h2" fontWeight={600}>
-          {getText({
-            ru: "Последние заказы",
-            en: "Recent orders",
-            ro: "Comenzi recente",
-          })}
+        <Typography variant="h6" component="h2">
+          {getText({ ru: "Товары", en: "Items", ro: "Produse" })}
+          <Typography component="span" color="text.secondary" sx={{ ml: 1, fontSize: 14 }}>
+            {filteredAndSortedOrders.length}
+          </Typography>
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          {!isMobile && (
           <ToggleButtonGroup
             value={viewMode}
             exclusive
             onChange={handleViewModeChange}
             aria-label="view mode"
-            size={isMobile ? "small" : "medium"}
+            size="small"
           >
             <ToggleButton value="list" aria-label="list view">
               {getText({ ru: "Список", en: "List", ro: "Lista" })}
@@ -450,35 +388,41 @@ const Orders = () => {
               {getText({ ru: "Сетка", en: "Grid", ro: "Grila" })}
             </ToggleButton>
           </ToggleButtonGroup>
+          )}
 
           {isMobile && (
-            <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
+            <IconButton
               onClick={() => setMobileFiltersOpen(true)}
-              size={isMobile ? "small" : "medium"}
-              sx={{
-                fontWeight: 500,
-                borderRadius: 2,
-                borderWidth: 2,
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                "&:hover": {
-                  borderWidth: 2,
-                  borderColor: theme.palette.primary.dark,
-                  background: "rgba(25, 118, 210, 0.04)",
-                },
-              }}
+              sx={{ bgcolor: "background.paper", width: 38, height: 38 }}
+              aria-label={getText({ ru: "Фильтры", en: "Filters", ro: "Filtre" })}
             >
-              {getText({ ru: "Фильтры", en: "Filters", ro: "Filtre" })}
-            </Button>
+              <FilterListIcon fontSize="small" />
+            </IconButton>
+          )}
+          {isMobile && selectedIds.length > 0 && (
+            <IconButton
+              onClick={() => setDeleteConfirmOpen(true)}
+              sx={{ bgcolor: "#fdecec", color: "error.main", width: 38, height: 38 }}
+              aria-label={getText({ ru: "Удалить", en: "Delete", ro: "Șterge" })}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
+          {isMobile && (
+            <IconButton
+              onClick={() => setAddPopupOpen(true)}
+              sx={{ bgcolor: "#111", color: "#fff", width: 38, height: 38, "&:hover": { bgcolor: "#333" } }}
+              aria-label={getText({ ru: "Добавить товар", en: "Add item", ro: "Adăugați produs" })}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
           )}
         </Box>
       </Box>
 
       {/* Фильтры для десктопа - полностью сохранены */}
       {!isMobile && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={1} sx={{ mb: 2 }} alignItems="center">
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -490,12 +434,12 @@ const Orders = () => {
               variant="outlined"
               value={nameFilter}
               onChange={handleNameFilterChange}
-              size="medium"
+              size="small"
             />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>
                 {getText({
                   ru: "Сортировка",
@@ -511,7 +455,7 @@ const Orders = () => {
                   en: "Sort by",
                   ro: "Sortează după",
                 })}
-                size="medium"
+                size="small"
                 startAdornment={
                   <SortIcon sx={{ mr: 1, color: "action.active" }} />
                 }
@@ -556,7 +500,7 @@ const Orders = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>
                 {getText({ ru: "Категория", en: "Category", ro: "Categorie" })}
               </InputLabel>
@@ -568,7 +512,7 @@ const Orders = () => {
                   en: "Category",
                   ro: "Categorie",
                 })}
-                size="medium"
+                size="small"
                 startAdornment={
                   <CategoryIcon sx={{ mr: 1, color: "action.active" }} />
                 }
@@ -594,8 +538,8 @@ const Orders = () => {
               <DeleteButton
                 variant="contained"
                 startIcon={<DeleteIcon />}
-                onClick={handleBulkDelete}
-                size="medium"
+                onClick={() => setDeleteConfirmOpen(true)}
+                size="small"
                 sx={{ mr: "auto" }}
               >
                 {getText({
@@ -608,7 +552,7 @@ const Orders = () => {
             <AddButton
               variant="contained"
               onClick={() => setAddPopupOpen(true)}
-              size="medium"
+              size="small"
               sx={{ ml: "auto" }}
               startIcon={<AddIcon />}
             >
@@ -625,219 +569,339 @@ const Orders = () => {
       {/* Мобильные фильтры - добавлен этот блок */}
       {renderMobileFilters()}
 
+      {/* Мобильные FAB-кнопки */}
+      {isMobile && (
+        <>
+          <Dialog
+            open={deleteConfirmOpen}
+            onClose={() => setDeleteConfirmOpen(false)}
+            fullWidth
+            maxWidth="xs"
+          >
+            <DialogContent sx={{ textAlign: "center", p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                {getText({
+                  ru: "Удалить выбранные товары?",
+                  en: "Delete selected items?",
+                  ro: "Ștergeți produsele selectate?",
+                })}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 3 }}>
+                {getText({
+                  ru: `Будет удалено: ${selectedIds.length}`,
+                  en: `Will be deleted: ${selectedIds.length}`,
+                  ro: `Vor fi șterse: ${selectedIds.length}`,
+                })}
+              </Typography>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+                <Button
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  variant="outlined"
+                >
+                  {getText({ ru: "Отмена", en: "Cancel", ro: "Anulează" })}
+                </Button>
+                <Button
+                  onClick={async () => {
+                    await handleBulkDelete();
+                    setDeleteConfirmOpen(false);
+                  }}
+                  variant="contained"
+                  color="error"
+                >
+                  {getText({ ru: "Удалить", en: "Delete", ro: "Șterge" })}
+                </Button>
+              </Box>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+
       {/* Контент - полностью сохранен, только добавлены условия isMobile */}
       {viewMode === "grid" ? (
-  <Grid container spacing={2}>
-    <OrderList
-      orders={paginatedOrders}
-      onEdit={handleEdit}
-      selectedIds={selectedIds}
-      onSelect={handleSelect}
-      onImageClick={handleImageClick}
-      isMobile={isMobile}
-    />
-  </Grid>
-) : (
-  <TableContainer
-    component={Paper}
-    sx={{
-      borderRadius: 2,
-      boxShadow: "none",
-      width: "100%",
-      overflowX: "auto",
-    }}
-  >
-    <Table
-      sx={{
-        minWidth: isMobile ? 300 : "100%",
-        "& .MuiTableCell-root": {
-          padding: isMobile ? "8px 4px" : "16px",
-          fontSize: isMobile ? "0.75rem" : "0.875rem",
-        },
-      }}
-    >
-      <TableHead>
-        <TableRow>
-          <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
-            <Checkbox
-              indeterminate={
-                selectedIds.length > 0 &&
-                selectedIds.length < paginatedOrders.length
-              }
-              checked={
-                paginatedOrders.length > 0 &&
-                selectedIds.length === paginatedOrders.length
-              }
-              onChange={handleSelectAll}
-              size={isMobile ? "small" : "medium"}
-            />
-          </TableCell>
-          {isMobile ? (
-            <>
-              <TableCell>
-                {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
-              </TableCell>
-            </>
-          ) : (
-            <>
-              <TableCell>
-                {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Категория", en: "Category", ro: "Categorie" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Фото", en: "Photo", ro: "Fotografie" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}
-              </TableCell>
-              <TableCell>
-                {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
-              </TableCell>
-            </>
-          )}
-          <TableCell>
-            {getText({ ru: "Действия", en: "Actions", ro: "Acțiuni" })}
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {paginatedOrders.map((order) => (
-          <TableRow
-            key={order.id}
-            selected={selectedIds.includes(order.id)}
-            hover
-          >
-            <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
-              <Checkbox
-                checked={selectedIds.includes(order.id)}
-                onChange={() => handleSelect(order.id)}
-                size={isMobile ? "small" : "medium"}
-              />
-            </TableCell>
-            
-            {isMobile ? (
-              <>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {order.image && (
-                      <IconButton
-                        onClick={() => handleImageClick(order.image!)}
-                        size="small"
-                        sx={{
-                          p: 0,
-                          "&:hover": {
-                            color: theme.palette.primary.main,
-                          },
-                        }}
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    <Typography variant="body2" noWrap sx={{ flex: 1 }}>
-                      {getText(order.name || "")}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  {order.price || 0} {order.currency || "$"}
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={order.active !== false}
-                    onChange={(e) => {
-                      const menuDoc = doc(db, "menu", order.id);
-                      updateDoc(menuDoc, {
-                        active: e.target.checked,
-                      });
+        <Grid container spacing={2}>
+          <OrderList
+            orders={paginatedOrders}
+            onEdit={handleEdit}
+            selectedIds={selectedIds}
+            onSelect={handleSelect}
+            onImageClick={handleImageClick}
+            isMobile={isMobile}
+          />
+        </Grid>
+      ) : isMobile ? (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+          {paginatedOrders.map((order) => {
+            const selected = selectedIds.includes(order.id);
+            return (
+              <Box
+                key={order.id}
+                onClick={() => handleEdit(order)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  pr: 0.5,
+                  minHeight: 60,
+                  borderRadius: "18px",
+                  bgcolor: selected ? "#111" : "background.paper",
+                  color: selected ? "#fff" : "text.primary",
+                  cursor: "pointer",
+                  opacity: order.active === false ? 0.55 : 1,
+                  transition: "background-color .15s",
+                }}
+              >
+                <Checkbox
+                  checked={selected}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => handleSelect(order.id)}
+                  size="small"
+                  sx={{ color: "inherit", "&.Mui-checked": { color: "inherit" } }}
+                />
+                <Box sx={{ minWidth: 0, flexGrow: 1, py: 1 }}>
+                  <Typography fontSize={14} fontWeight={600} noWrap>
+                    {getText(order.name || "")}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    noWrap
+                    component="div"
+                    sx={{ color: selected ? "rgba(255,255,255,0.7)" : "text.secondary" }}
+                  >
+                    {order.price || 0} {order.currency || "$"}
+                    {order.category ? ` · ${order.category}` : ""}
+                  </Typography>
+                </Box>
+                {order.image && (
+                  <IconButton
+                    size="small"
+                    sx={{ color: "inherit" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleImageClick(order.image!);
                     }}
-                    color="primary"
-                    size="small"
+                  >
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                )}
+                <Switch
+                  size="small"
+                  defaultChecked={order.active !== false}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) =>
+                    updateDoc(doc(db, "menu", order.id), { active: e.target.checked })
+                  }
+                />
+              </Box>
+            );
+          })}
+        </Box>
+      ) : (
+        <TableContainer
+          component={Paper}
+          sx={{
+            bgcolor: "transparent",
+            boxShadow: "none",
+            width: "100%",
+            overflowX: "auto",
+          }}
+        >
+          <Table
+            sx={{
+              minWidth: isMobile ? 300 : "100%",
+              "& .MuiTableCell-root": {
+                padding: "8px 12px",
+                fontSize: "0.85rem",
+              },
+            }}
+          >
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
+                  <Checkbox
+                    indeterminate={
+                      selectedIds.length > 0 &&
+                      selectedIds.length < paginatedOrders.length
+                    }
+                    checked={
+                      paginatedOrders.length > 0 &&
+                      selectedIds.length === paginatedOrders.length
+                    }
+                    onChange={handleSelectAll}
+                    size={isMobile ? "small" : "medium"}
                   />
                 </TableCell>
-              </>
-            ) : (
-              <>
-                <TableCell>{getText(order.name || "")}</TableCell>
+                {isMobile ? (
+                  <>
+                    <TableCell>
+                      {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+                    </TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell>
+                      {getText({ ru: "Название", en: "Name", ro: "Denumire" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({
+                        ru: "Категория",
+                        en: "Category",
+                        ro: "Categorie",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Фото", en: "Photo", ro: "Fotografie" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Цена", en: "Price", ro: "Preț" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}
+                    </TableCell>
+                    <TableCell>
+                      {getText({ ru: "Активен", en: "Active", ro: "Activ" })}
+                    </TableCell>
+                  </>
+                )}
                 <TableCell>
-                  <Chip
-                    label={order.category}
-                    size="small"
-                    variant="outlined"
-                  />
+                  {getText({ ru: "Действия", en: "Actions", ro: "Acțiuni" })}
                 </TableCell>
-                <TableCell>
-                  {order.image && (
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedOrders.map((order) => (
+                <TableRow
+                  key={order.id}
+                  selected={selectedIds.includes(order.id)}
+                  hover
+                >
+                  <TableCell padding="checkbox" sx={{ pl: isMobile ? 1 : 2 }}>
+                    <Checkbox
+                      checked={selectedIds.includes(order.id)}
+                      onChange={() => handleSelect(order.id)}
+                      size={isMobile ? "small" : "medium"}
+                    />
+                  </TableCell>
+
+                  {isMobile ? (
+                    <>
+                      <TableCell>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {order.image && (
+                            <IconButton
+                              onClick={() => handleImageClick(order.image!)}
+                              size="small"
+                              sx={{
+                                p: 0,
+                                "&:hover": {
+                                  color: theme.palette.primary.main,
+                                },
+                              }}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          <Typography variant="body2" noWrap sx={{ flex: 1 }}>
+                            {getText(order.name || "")}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {order.price || 0} {order.currency || "$"}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          defaultChecked={order.active !== false}
+                          onChange={(e) => {
+                            const menuDoc = doc(db, "menu", order.id);
+                            updateDoc(menuDoc, {
+                              active: e.target.checked,
+                            });
+                          }}
+                          color="primary"
+                          size="small"
+                        />
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{getText(order.name || "")}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={order.category}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {order.image && (
+                          <IconButton
+                            onClick={() => handleImageClick(order.image!)}
+                            size="small"
+                            sx={{
+                              "&:hover": {
+                                color: theme.palette.primary.main,
+                                transform: "scale(1.1)",
+                              },
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {order.price || 0} {order.currency || "$"}
+                      </TableCell>
+                      <TableCell>
+                        {order.weight}{" "}
+                        {order.weightUnit === "g"
+                          ? "g"
+                          : order.weightUnit === "ml"
+                          ? "ml"
+                          : "kg"}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          defaultChecked={order.active !== false}
+                          onChange={(e) => {
+                            const menuDoc = doc(db, "menu", order.id);
+                            updateDoc(menuDoc, {
+                              active: e.target.checked,
+                            });
+                          }}
+                          color="primary"
+                          size="medium"
+                        />
+                      </TableCell>
+                    </>
+                  )}
+
+                  <TableCell>
                     <IconButton
-                      onClick={() => handleImageClick(order.image!)}
-                      size="small"
+                      onClick={() => handleEdit(order)}
+                      size={isMobile ? "small" : "medium"}
                       sx={{
+                        color: theme.palette.primary.main,
                         "&:hover": {
-                          color: theme.palette.primary.main,
-                          transform: "scale(1.1)",
+                          backgroundColor: "rgba(0,0,0,0.04)",
                         },
                       }}
                     >
-                      <VisibilityIcon fontSize="small" />
+                      <EditIcon fontSize={isMobile ? "small" : "medium"} />
                     </IconButton>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {order.price || 0} {order.currency || "$"}
-                </TableCell>
-                <TableCell>
-                  {order.weight}{" "}
-                  {order.weightUnit === "g"
-                    ? "g"
-                    : order.weightUnit === "ml"
-                    ? "ml"
-                    : "kg"}
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={order.active !== false}
-                    onChange={(e) => {
-                      const menuDoc = doc(db, "menu", order.id);
-                      updateDoc(menuDoc, {
-                        active: e.target.checked,
-                      });
-                    }}
-                    color="primary"
-                    size="medium"
-                  />
-                </TableCell>
-              </>
-            )}
-            
-            <TableCell>
-              <IconButton
-                onClick={() => handleEdit(order)}
-                size={isMobile ? "small" : "medium"}
-                sx={{
-                  color: theme.palette.primary.main,
-                  "&:hover": {
-                    backgroundColor: "rgba(25, 118, 210, 0.08)",
-                  },
-                }}
-              >
-                <EditIcon fontSize={isMobile ? "small" : "medium"} />
-              </IconButton>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Пагинация - полностью сохранена, только добавлены условия isMobile */}
@@ -904,18 +968,7 @@ const Orders = () => {
               onClick={() => setImagePopupOpen(false)}
               size={isMobile ? "small" : "medium"}
               fullWidth={isMobile}
-              sx={{
-                background: "linear-gradient(45deg, #4caf50 30%, #66bb6a 90%)",
-                color: "white",
-                fontWeight: 600,
-                borderRadius: 8,
-                padding: "8px 16px",
-                maxWidth: isMobile ? "100%" : 200,
-                "&:hover": {
-                  background:
-                    "linear-gradient(45deg, #4caf50 20%, #66bb6a 80%)",
-                },
-              }}
+              sx={{ maxWidth: isMobile ? "100%" : 200 }}
             >
               {getText({ ru: "Закрыть", en: "Close", ro: "Închide" })}
             </Button>

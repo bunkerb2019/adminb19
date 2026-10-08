@@ -20,3 +20,8 @@ export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// иконки перезаливаются по тому же пути, поэтому кэш короткий + фоновое обновление
+export const ICON_UPLOAD_META = {
+  cacheControl: "public, max-age=3600, stale-while-revalidate=2592000",
+};

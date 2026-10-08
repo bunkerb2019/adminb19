@@ -1,146 +1,88 @@
-
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Box,
-  Avatar,
-  Button,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
+import { IconButton, Box, Avatar, Tooltip, useMediaQuery } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { logout } from "../firebase/auth";
+import InstagramBlack from "../assets/logosfooter/InstagramBlack.svg";
+import TelegramBlack from "../assets/logosfooter/telegramBlack.svg";
+import logoWhite from "../assets/logo.png";
+import { isActivePath, menuItems } from "./Sidebar";
 
-const Navbar = ({
-  toggleTheme,
-  darkMode,
-  toggleSidebar,
-  sidebarOpen,
-}: {
-  toggleTheme: () => void;
-  darkMode: boolean;
-  toggleSidebar: () => void;
-  sidebarOpen: boolean;
-}) => {
+const softBtn = { bgcolor: "background.paper", width: 38, height: 38 };
+
+const Navbar = () => {
   const { user } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { pathname } = useLocation();
+  const isMobile = useMediaQuery("(max-width:899.95px)");
+  const title = menuItems.find((i) => isActivePath(i.path, pathname))?.title ?? "";
 
-  const handleSidebarToggle = () => {
-    toggleSidebar();
-  };
+  if (isMobile) {
+    return (
+      <Box
+        component="header"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          px: 2,
+          pt: "calc(12px + env(safe-area-inset-top))",
+          pb: 1.5,
+          color: "#fff",
+        }}
+      >
+        <Box component="img" src={logoWhite} alt="Bunker B19" sx={{ width: 28, height: 28 }} />
+        <Box sx={{ fontWeight: 600, fontSize: 18, flexGrow: 1 }}>{title}</Box>
+        <IconButton
+          onClick={logout}
+          aria-label="Выйти"
+          sx={{ color: "#fff", bgcolor: "rgba(255,255,255,0.1)", width: 38, height: 38 }}
+        >
+          <LogoutIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    );
+  }
 
   return (
-    <AppBar
-  position="fixed"
-  elevation={0}
-  sx={{
-    backgroundColor: darkMode ? "rgba(255, 255, 255, 0)" : "rgba(25, 25, 25, 0)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    color: darkMode ? "#000" : "#fff",
-    zIndex: (theme) => theme.zIndex.drawer + 1,
-  }}
->
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          {isMobile && ( // Показываем иконку меню только на мобильных
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleSidebarToggle}
-              aria-label="menu"
-              sx={{ mr: 2 }}
-            >
-              {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
-            </IconButton>
-          )}
+    <Box
+      component="header"
+      sx={{
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+        bgcolor: "background.default",
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        px: 3.5,
+        py: 2,
+      }}
+    >
+      <Box sx={{ fontWeight: 600, fontSize: 22, letterSpacing: -0.4, flexGrow: 1 }}>
+        {title}
+      </Box>
+      <Tooltip title="Telegram">
+        <IconButton sx={softBtn} href="https://t.me/max_kich" target="_blank" rel="noopener noreferrer">
+          <img src={TelegramBlack} alt="Telegram" width={18} height={18} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Instagram">
+        <IconButton
+          sx={softBtn}
+          href="https://www.instagram.com/max_gutsu/?hl=ru"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src={InstagramBlack} alt="Instagram" width={18} height={18} />
+        </IconButton>
+      </Tooltip>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: 1.5 }}>
+        <Avatar src={user?.photoURL || ""} sx={{ width: 34, height: 34 }} />
+        <Box sx={{ fontWeight: 600, fontSize: 14, maxWidth: 160 }} title={user?.email || ""}>
+          {user?.displayName?.split(" ")[0] || "Админ"}
         </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box
-            onClick={toggleTheme}
-            sx={{
-              width: 50,
-              height: 28,
-              borderRadius: "50px",
-              backgroundColor: darkMode ? "#e0e0e0" : "#444",
-              // boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
-              display: "flex",
-              alignItems: "center",
-              padding: "3px",
-              cursor: "pointer",
-              transition: "background-color 0.3s ease",
-              position: "relative",
-            }}
-          >
-            <Box
-              sx={{
-                position: "absolute",
-                left: darkMode ? "3px" : "calc(100% - 25px - 3px)",
-                width: 25,
-                height: 25,
-                borderRadius: "50%",
-                backgroundColor: darkMode ? "#444" : "#000",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.3s ease",
-                color: darkMode ? "#fff" : "#fff",
-              }}
-            >
-              {darkMode ? (
-                <LightModeIcon fontSize="small" />
-              ) : (
-                <DarkModeIcon fontSize="small" />
-              )}
-            </Box>
-          </Box>
-
-          {user && (
-            <>
-              {user.photoURL && (
-                <Avatar 
-                  src={user.photoURL} 
-                  sx={{ 
-                    width: 36, 
-                    height: 36,
-                    display: { xs: 'none', sm: 'flex' } // Скрываем аватар на очень маленьких экранах
-                  }} 
-                />
-              )}
-              <Button
-                variant="outlined"
-                startIcon={<ExitToAppIcon />}
-                onClick={logout}
-                sx={{
-                  textTransform: "none",
-                  borderRadius: "20px",
-                  padding: "6px 16px",
-                  borderColor: darkMode ? "#000" : "#fff",
-                  color: darkMode ? "#000" : "#fff",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: darkMode ? "#000" : "#fff",
-                    color: darkMode ? "#fff" : "#000",
-                    borderColor: darkMode ? "#000" : "#fff",
-                  },
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' } // Адаптивный размер текста
-                }}
-              >
-                Выйти
-              </Button>
-            </>
-          )}
-        </Box>
-      </Toolbar>
-    </AppBar>
+      </Box>
+    </Box>
   );
 };
 

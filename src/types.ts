@@ -22,16 +22,15 @@ export interface Order {
     en?: string;
   };
   weight?: string;
-  weightUnit?: 'g' | 'ml' | 'kg'; // Add this line
+  weightUnit?: "g" | "ml" | "kg"; // Add this line
   price?: number;
-  currency?: 'MDL' | '$' | '€'; // Add this line
+  currency?: "MDL" | "$" | "€"; // Add this line
   image?: string;
+  imageVersion?: number;
   category: string;
   type?: ReactNode;
   active?: boolean; // Добавляем новое поле
 }
-
-
 
 export interface RandomSettings {
   pageTitle: {
@@ -47,7 +46,6 @@ export interface RandomSettings {
   randomizers: RandomizerConfig[];
 }
 
-
 export interface RandomizerConfig {
   id: string;
   slotTitle: {
@@ -55,7 +53,8 @@ export interface RandomizerConfig {
     ro: string;
     en: string;
   };
-  name?: { // Добавлено для обратной совместимости
+  name?: {
+    // Добавлено для обратной совместимости
     ru: string;
     ro?: string;
     en?: string;

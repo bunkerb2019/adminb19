@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Modal,
   Box,
   Typography,
   TextField,
@@ -18,10 +17,11 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { db } from "../firebase/firebaseConfig";
+import { db, ICON_UPLOAD_META } from "../firebase/firebaseConfig";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
-import CloseIcon from "@mui/icons-material/Close";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import logoWhite from "../assets/logo.png";
+import { saveBarSx } from "../styles/saveBarSx";
+import { showSaved } from "./SavedCheck";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -42,13 +42,11 @@ export interface Category {
   icon: string;
 }
 
-interface CategoryPopupProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
+const CategoryPopup = () => {
   const [iconFiles, setIconFiles] = useState<{ [key: string]: File | null }>(
+    {}
+  );
+  const [iconPreviews, setIconPreviews] = useState<{ [key: string]: string }>(
     {}
   );
   const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
@@ -91,7 +89,9 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
   };
 
   const handleIconUpload = (id: string, file: File | null) => {
+    if (!file) return;
     setIconFiles((prev) => ({ ...prev, [id]: file }));
+    setIconPreviews((prev) => ({ ...prev, [id]: URL.createObjectURL(file) }));
   };
 
   const handleEditMode = (id: string) => {
@@ -111,9 +111,12 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
       let updatedIcon = category.icon;
       if (iconFiles[category.id]) {
         const storageRef = ref(storage, `categories/${category.id}`);
-        await uploadBytes(storageRef, iconFiles[category.id]!);
+        await uploadBytes(storageRef, iconFiles[category.id]!, ICON_UPLOAD_META);
         updatedIcon = await getDownloadURL(storageRef);
       }
+
+      setIconFiles((prev) => ({ ...prev, [category.id]: null }));
+      setIconPreviews((prev) => ({ ...prev, [category.id]: "" }));
 
       const updatedCategory = { ...category, icon: updatedIcon };
       setCategories((prev) =>
@@ -135,6 +138,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
           queryKey: queryKeys.categories(),
         });
         setCategories([]);
+        showSaved();
       }
     } catch (error) {
       console.error("Error saving category:", error);
@@ -142,6 +146,7 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
   };
 
   const handleDeleteCategory = async (id: string) => {
+    if (!window.confirm("Удалить категорию?")) return;
     try {
       const docRef = getCategoriesDoc();
       await updateDoc(docRef, {
@@ -155,11 +160,26 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
   };
 
   const handleDeleteIcon = async (id: string) => {
+    setIconFiles((prev) => ({ ...prev, [id]: null }));
+    setIconPreviews((prev) => ({ ...prev, [id]: "" }));
+    setCategories((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, icon: "" } : item))
+    );
     try {
-      await deleteObject(ref(storage, `categories/${id}`));
-      setCategories((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, icon: "" } : item))
-      );
+      const docRef = getCategoriesDoc();
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        await updateDoc(docRef, {
+          list: docSnap
+            .data()
+            .list.map((item: Category) =>
+              item.id === id ? { ...item, icon: "" } : item
+            ),
+        });
+      }
+      // файла может уже не быть в Storage — иконку всё равно отвязываем
+      await deleteObject(ref(storage, `categories/${id}`)).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
     } catch (error) {
       console.error("Error deleting icon:", error);
     }
@@ -192,242 +212,174 @@ const CategoryPopup: React.FC<CategoryPopupProps> = ({ open, onClose }) => {
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "100%",
-          maxWidth: 900,
-          bgcolor: "background.paper",
-          p: { xs: 1, sm: 2 },
-          borderRadius: 2,
-          boxShadow: 24,
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 1,
-            px: 1,
-          }}
-        >
-          <Typography variant="subtitle1">Category Editor</Typography>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        {/* Tabs */}
+      <Box>
         <Tabs
           value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
-          sx={{
-            mb: 1,
-            minHeight: 36,
-            "& .MuiTab-root": {
-              minHeight: 36,
-              py: 0.5,
-              px: 1,
-              fontSize: "0.75rem",
-            },
-          }}
+          sx={{ mb: 1.5, borderBottom: 1, borderColor: "divider" }}
         >
           {["1", "2", "3"].map((tab) => (
             <Tab key={tab} label={`Страница ${tab}`} value={tab} />
           ))}
         </Tabs>
 
-        {/* Category List */}
-        <Box
-          sx={{
-            flex: 1,
-            overflowY: "auto",
-            p: { xs: 0.5, sm: 1 },
-          }}
-        >
+        <Box>
           {categories
             .filter((cat) => cat.parentId === activeTab)
-            .map((item) => (
-              <Paper
-                key={item.id}
-                elevation={1}
-                sx={{
-                  mb: 1,
-                  p: 1,
-                  bgcolor: editMode[item.id] ? "action.hover" : undefined,
-                }}
-              >
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1}
-                  alignItems={{ sm: "center" }}
+            .map((item) => {
+              const editing = !!editMode[item.id];
+              const iconSrc = iconPreviews[item.id] || item.icon;
+              const hasErrors =
+                Object.keys(validationErrors[item.id] || {}).length > 0;
+              const fileInput = (
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    handleIconUpload(item.id, e.target.files?.[0] || null);
+                    e.target.value = "";
+                  }}
+                />
+              );
+
+              return (
+                <Paper
+                  key={item.id}
+                  variant="outlined"
+                  sx={{
+                    mb: 1,
+                    p: 1.5,
+                    borderRadius: "20px",
+                    bgcolor: "background.paper",
+                    borderColor: editing ? "primary.main" : "transparent",
+                  }}
                 >
-                  {/* Icon Block */}
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      minWidth: 40,
-                      minHeight: 40,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(0, 0, 0, 0.5)",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {item.icon ? (
-                      <Box position="relative" display="inline-block">
-                        <img
-                          src={item.icon}
-                          alt="icon"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 4,
-                          }}
-                        />
-                        {editMode[item.id] && (
-                          <IconButton
-                            size="small"
-                            sx={{
-                              position: "absolute",
-                              top: -8,
-                              right: -8,
-                              p: 0.25,
-                              bgcolor: "background.paper",
-                            }}
-                            onClick={() => handleDeleteIcon(item.id)}
-                          >
-                            <DeleteIcon fontSize="inherit" />
-                          </IconButton>
-                        )}
-                      </Box>
-                    ) : editMode[item.id] ? (
-                      <Button
-                        component="label"
-                        size="small"
-                        startIcon={<CloudUploadIcon fontSize="small" />}
-                        sx={{ height: 32 }}
-                      >
-                        Icon
-                        <input
-                          type="file"
-                          hidden
-                          onChange={(e) =>
-                            handleIconUpload(
-                              item.id,
-                              e.target.files?.[0] || null
-                            )
-                          }
-                        />
-                      </Button>
-                    ) : null}
-                  </Box>
-
-                  {/* Input Fields */}
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={0.5}
-                    sx={{ flexGrow: 1 }}
-                  >
-                    {["ru", "ro", "en"].map((lang) => (
-                      <TextField
-                        key={lang}
-                        label={lang.toUpperCase()}
-                        value={item[lang as keyof Category]}
-                        onChange={(e) =>
-                          handleInputChange(
-                            item.id,
-                            lang as "ru" | "ro" | "en",
-                            e.target.value
-                          )
-                        }
-                        size="small"
-                        fullWidth
-                        disabled={!editMode[item.id]}
-                        error={!!validationErrors[item.id]?.[lang]}
-                        helperText={validationErrors[item.id]?.[lang]}
+                  <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                    {/* Icon */}
+                    <Stack alignItems="center" spacing={0.5} sx={{ width: 72, flexShrink: 0 }}>
+                      <Box
+                        component={editing ? "label" : "div"}
                         sx={{
-                          "& .MuiInputBase-root": { height: 40 },
-                          "& .MuiFormHelperText-root": {
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          },
+                          width: 56,
+                          height: 56,
+                          borderRadius: "16px",
+                          bgcolor: "#111",
+                          border: "1px dashed",
+                          borderColor: editing ? "primary.main" : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                          cursor: editing ? "pointer" : "default",
                         }}
-                      />
-                    ))}
-                  </Stack>
+                      >
+                        <img
+                          src={iconSrc || logoWhite}
+                          alt=""
+                          style={{ width: 40, height: 40, objectFit: "contain" }}
+                        />
+                        {editing && fileInput}
+                      </Box>
+                      {editing && (
+                        <>
+                          <Button
+                            component="label"
+                            size="small"
+                            sx={{ minWidth: 0, py: 0, fontSize: 12 }}
+                          >
+                            {iconSrc ? "Заменить" : "Загрузить"}
+                            {fileInput}
+                          </Button>
+                          {iconSrc && (
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteIcon(item.id)}
+                              sx={{ minWidth: 0, py: 0, fontSize: 12 }}
+                            >
+                              Убрать
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </Stack>
 
-                  {/* Action Buttons */}
-                  <Stack
-                    direction="row"
-                    spacing={0.5}
-                    sx={{ mt: { xs: 1, sm: 0 } }}
-                  >
-                    {editMode[item.id] ? (
+                    {/* Names */}
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                      {editing ? (
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                          {(["ru", "ro", "en"] as const).map((lang) => (
+                            <TextField
+                              key={lang}
+                              label={lang.toUpperCase()}
+                              value={item[lang]}
+                              onChange={(e) =>
+                                handleInputChange(item.id, lang, e.target.value)
+                              }
+                              size="small"
+                              fullWidth
+                              error={!!validationErrors[item.id]?.[lang]}
+                            />
+                          ))}
+                        </Stack>
+                      ) : (
+                        <Box sx={{ pt: 0.5 }}>
+                          <Typography fontWeight={600} noWrap>
+                            {item.ru || "Без названия"}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {[item.ro, item.en].filter(Boolean).join(" · ")}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* Actions */}
+                    <Stack direction="row" spacing={0.5}>
+                      {editing ? (
+                        <IconButton
+                          color="success"
+                          onClick={() => handleSaveCategory(item)}
+                          disabled={hasErrors}
+                          aria-label="Сохранить"
+                        >
+                          <SaveIcon />
+                        </IconButton>
+                      ) : (
+                        <IconButton
+                          onClick={() => handleEditMode(item.id)}
+                          aria-label="Редактировать"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      )}
                       <IconButton
-                        size="small"
-                        color="success"
-                        onClick={() => handleSaveCategory(item)}
-                        disabled={
-                          Object.keys(validationErrors[item.id] || {}).length >
-                          0
-                        }
-                        sx={{ height: 32, width: 32 }}
+                        color="error"
+                        onClick={() => handleDeleteCategory(item.id)}
+                        aria-label="Удалить категорию"
                       >
-                        <SaveIcon fontSize="small" />
+                        <DeleteIcon />
                       </IconButton>
-                    ) : (
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditMode(item.id)}
-                        sx={{ height: 32, width: 32 }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleDeleteCategory(item.id)}
-                      sx={{ height: 32, width: 32 }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    </Stack>
                   </Stack>
-                </Stack>
-              </Paper>
-            ))}
+                </Paper>
+              );
+            })}
         </Box>
 
-        {/* Add Button */}
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={() => handleAddCategory(activeTab)}
-          fullWidth
-          sx={{ mt: 1, height: 36 }}
-        >
-          Add Category
-        </Button>
+        <Box sx={saveBarSx}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<AddIcon />}
+            onClick={() => handleAddCategory(activeTab)}
+          >
+            Добавить категорию
+          </Button>
+        </Box>
       </Box>
-    </Modal>
   );
 };
 

@@ -11,7 +11,7 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   BarChart,
   Bar,
@@ -69,22 +69,41 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
   );
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 } }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
-        📊 Аналитика
-      </Typography>
-
+    <Box>
       <Card
-        sx={{ mb: 4, p: 2, borderRadius: "20px", boxShadow: theme.shadows[2] }}
+        sx={{
+          mb: 2,
+          p: 2,
+          borderRadius: "20px",
+          // border: "1.5px solid rgba(31,38,135,0.18)",
+          position: "relative",
+          zIndex: 1,
+        }}
       >
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
+            <FormControl
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: 2,
+              }}
+            >
               <InputLabel>Период</InputLabel>
               <Select
                 value={viewType}
                 label="Период"
                 onChange={(e) => setViewType(e.target.value as ViewType)}
+                sx={{
+                  borderRadius: 2,
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      borderRadius: 2,
+                    },
+                  },
+                }}
               >
                 <MenuItem value="day">День</MenuItem>
                 <MenuItem value="week">Неделя</MenuItem>
@@ -95,7 +114,13 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
           </Grid>
           {viewType === "month" && (
             <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size="small">
+              <FormControl
+                fullWidth
+                size="small"
+                sx={{
+                  borderRadius: 2,
+                }}
+              >
                 <InputLabel>Месяц</InputLabel>
                 <Select
                   value={selectedTimeRange.month}
@@ -106,6 +131,16 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
                       month: Number(e.target.value),
                     })
                   }
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        borderRadius: 2,
+                      },
+                    },
+                  }}
                 >
                   {months.map((name, index) => (
                     <MenuItem key={index} value={index + 1}>
@@ -117,7 +152,13 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
             </Grid>
           )}
           <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
+            <FormControl
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: 2,
+              }}
+            >
               <InputLabel>Год</InputLabel>
               <Select
                 value={selectedTimeRange.year}
@@ -128,6 +169,16 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
                     year: Number(e.target.value),
                   })
                 }
+                sx={{
+                  borderRadius: 2,
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      borderRadius: 2,
+                    },
+                  },
+                }}
               >
                 {years.map((year) => (
                   <MenuItem key={year} value={year}>
@@ -140,48 +191,61 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
         </Grid>
       </Card>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
+        <Grid item xs={6} md={3}>
           <StatCard
             title="Товаров"
             value={stats.totalProducts}
-            icon={<ShoppingCart fontSize="large" />}
+            icon={<ShoppingCart />}
             color={theme.palette.primary.main}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} md={3}>
           <StatCard
             title="Категорий"
             value={stats.totalCategories}
-            icon={<Category fontSize="large" />}
+            icon={<Category />}
             color={theme.palette.secondary.main}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} md={3}>
           <StatCard
             title="Без фото"
             value={stats.productsWithoutImage}
-            icon={<ImageNotSupported fontSize="large" />}
+            icon={<ImageNotSupported />}
             color={theme.palette.error.main}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} md={3}>
           <StatCard
-            title="Конверсия"
-            value={`${stats.conversionRate || 0}%`}
-            icon={<Star fontSize="large" />}
+            title="Пользователей сегодня"
+            value={(() => {
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, "0");
+              const dd = String(today.getDate()).padStart(2, "0");
+              const todayStr = `${yyyy}-${mm}-${dd}`;
+              const todayStat = stats.views.find((v) => v.name === todayStr);
+              return todayStat ? todayStat.value : 0;
+            })()}
+            icon={<Star />}
             color={theme.palette.success.main}
           />
         </Grid>
       </Grid>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
         <Grid item xs={12} md={6}>
           <Card
-            sx={{ p: 2, borderRadius: "20px", boxShadow: theme.shadows[2] }}
+            sx={{
+              p: 2,
+              borderRadius: "20px",
+              position: "relative",
+              zIndex: 1,
+            }}
           >
             <Typography variant="h6" sx={{ mb: 2 }}>
-              📈 Просмотры по категориям
+              Просмотры по категориям
             </Typography>
             {isLoading ? (
               <Box display="flex" justifyContent="center" p={4}>
@@ -190,8 +254,8 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={stats.views}>
-                  <XAxis dataKey="name" stroke="#8884d8" />
-                  <YAxis stroke="#8884d8" />
+                  <XAxis dataKey="name" stroke="#8a8f98" tickLine={false} axisLine={false} fontSize={12} />
+                  <YAxis stroke="#8a8f98" tickLine={false} axisLine={false} fontSize={12} />
                   <Tooltip />
                   <Bar
                     dataKey="value"
@@ -206,10 +270,15 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Card
-            sx={{ p: 2, borderRadius: "20px", boxShadow: theme.shadows[2] }}
+            sx={{
+              p: 2,
+              borderRadius: "20px",
+              position: "relative",
+              zIndex: 1,
+            }}
           >
             <Typography variant="h6" sx={{ mb: 2 }}>
-              📊 Динамика просмотров
+              Динамика просмотров
             </Typography>
             {isLoading ? (
               <Box display="flex" justifyContent="center" p={4}>
@@ -218,8 +287,8 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={stats.views}>
-                  <XAxis dataKey="name" stroke="#8884d8" />
-                  <YAxis stroke="#8884d8" />
+                  <XAxis dataKey="name" stroke="#8a8f98" tickLine={false} axisLine={false} fontSize={12} />
+                  <YAxis stroke="#8a8f98" tickLine={false} axisLine={false} fontSize={12} />
                   <Tooltip />
                   <Line
                     type="monotone"
@@ -247,11 +316,12 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
               p: 2,
               mb: 4,
               borderRadius: "20px",
-              boxShadow: theme.shadows[2],
+              position: "relative",
+              zIndex: 1,
             }}
           >
             <Typography variant="h6" sx={{ mb: 2 }}>
-              🔥 Популярные товары
+              Популярные товары
             </Typography>
             <Grid container spacing={2}>
               {stats.popularProducts.map((product, index) => (
@@ -261,11 +331,6 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
                     sx={{
                       borderRadius: "16px",
                       p: 2,
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "#1e1e2f"
-                          : theme.palette.grey[100],
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
                     }}
                   >
                     <CardContent>
@@ -289,4 +354,4 @@ const StatisticsOverview = ({ stats }: { stats: Stats }) => {
   );
 };
 
-export default StatisticsOverview;
+export default memo(StatisticsOverview);

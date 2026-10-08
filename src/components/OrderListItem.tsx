@@ -1,13 +1,13 @@
-import { 
-  Card, 
-  CardContent, 
-  Grid, 
-  Typography, 
-  Checkbox, 
-  Box, 
+import {
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Checkbox,
+  Box,
   Switch,
   FormControlLabel,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import { getDownloadURL, ref } from "firebase/storage";
 import { storage } from "../firebase/firebaseConfig";
@@ -24,15 +24,14 @@ type Props = {
   selected: boolean;
   onSelect: () => void;
   onImageClick?: (imagePath: string) => Promise<void>;
-  
 };
 
-const OrderListItem = ({ 
-  order, 
-  onEdit, 
-  selected, 
+const OrderListItem = ({
+  order,
+  onEdit,
+  selected,
   onSelect,
-  onImageClick
+  onImageClick,
 }: Props) => {
   const [imgUrl, setImgUrl] = useState<string | undefined>();
   const [isActive, setIsActive] = useState(order.active);
@@ -45,7 +44,11 @@ const OrderListItem = ({
   }, [imgUrl, order.image]);
 
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.MuiCheckbox-root, .MuiSwitch-root, .MuiIconButton-root')) {
+    if (
+      (e.target as HTMLElement).closest(
+        ".MuiCheckbox-root, .MuiSwitch-root, .MuiIconButton-root"
+      )
+    ) {
       return;
     }
     onEdit(order);
@@ -54,11 +57,11 @@ const OrderListItem = ({
   const handleActiveChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newActiveState = e.target.checked;
     setIsActive(newActiveState);
-    
+
     try {
       const menuDoc = doc(db, "menu", order.id);
       await updateDoc(menuDoc, {
-        active: newActiveState
+        active: newActiveState,
       });
     } catch (error) {
       console.error("Error updating active status:", error);
@@ -82,20 +85,22 @@ const OrderListItem = ({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          border: "1px solid #6b6969",
-          position: 'relative',
-          transition: 'opacity 0.3s ease',
+          borderRadius: "20px",
+          position: "relative",
+          transition: "opacity 0.3s ease",
         }}
         onClick={handleClick}
       >
-        <Box sx={{ 
-          position: 'absolute', 
-          top: 8, 
-          left: 8,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Checkbox
             checked={selected}
             onChange={onSelect}
@@ -104,13 +109,15 @@ const OrderListItem = ({
           />
         </Box>
 
-        <Box sx={{ 
-          position: 'absolute', 
-          top: 8, 
-          right: 8,
-          display: 'flex',
-          alignItems: 'center'
-        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <FormControlLabel
             control={
               <Switch
@@ -127,25 +134,25 @@ const OrderListItem = ({
         </Box>
 
         <CardContent sx={{ pt: 6 }}>
-          <Typography variant="body1">
-            {getText(order.name || '')}
-          </Typography>
+          <Typography variant="body1">{getText(order.name || "")}</Typography>
           <Typography variant="body2" color="text.secondary">
             {order.category}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {getText({ ru: "Цена", en: "Price", ro: "Preț" })}: {order.price || 0} {order.currency || '$'}
+            {getText({ ru: "Цена", en: "Price", ro: "Preț" })}:{" "}
+            {order.price || 0} {order.currency || "$"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}: {order.weight || ''} {order.weightUnit || 'г'}
+            {getText({ ru: "Вес", en: "Weight", ro: "Greutate" })}:{" "}
+            {order.weight || ""} {order.weightUnit || "г"}
           </Typography>
         </CardContent>
 
         {imgUrl && (
-          <Box sx={{ position: 'relative' }}>
+          <Box sx={{ position: "relative" }}>
             <img
               src={imgUrl}
-              alt={getText(order.name || '')}
+              alt={getText(order.name || "")}
               style={{
                 width: "100%",
                 height: "100px",
@@ -159,14 +166,14 @@ const OrderListItem = ({
                 size="small"
                 onClick={handleImagePreview}
                 sx={{
-                  position: 'absolute',
+                  position: "absolute",
                   bottom: 4,
                   right: 4,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0,0,0,0.7)'
-                  }
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "rgba(0,0,0,0.7)",
+                  },
                 }}
               >
                 <VisibilityIcon fontSize="small" />
